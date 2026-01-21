@@ -1,0 +1,4 @@
+services:
+  test:
+    image: nginx
+    container_name: prueba-compose
