@@ -16,13 +16,13 @@ pipeline {
                 echo "Desplegando contenedores en la misma instancia"
 
                 // Bajar contenedores existentes
-                sh "docker-compose -f infraestructure/docker/docker-compose.yml down || true"
+                sh "docker compose -f infraestructure/docker/docker-compose.yml down || true"
 
                 // Reconstruir contenedores
-                sh "docker-compose -f infraestructure/docker/docker-compose.yml build"
+                sh "docker compose -f infraestructure/docker/docker-compose.yml build"
 
                 // Levantar contenedores
-                sh "docker-compose -f infraestructure/docker/docker-compose.yml up -d"
+                sh "docker compose -f infraestructure/docker/docker-compose.yml up -d"
             }
         }
         stage('Verificar Contenedores') {
