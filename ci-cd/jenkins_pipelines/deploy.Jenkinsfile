@@ -18,11 +18,8 @@ pipeline {
                 // Bajar contenedores existentes
                 sh "docker compose -f infraestructure/docker/docker-compose.yml down || true"
 
-                // Reconstruir contenedores
-                sh "docker compose -f infraestructure/docker/docker-compose.yml build"
-
-                // Levantar contenedores
-                sh "docker compose -f infraestructure/docker/docker-compose.yml up -d"
+                // Reconstruir y levantar contenedores
+                sh "docker compose -f infraestructure/docker/docker-compose.yml up -d --build"
             }
         }
         stage('Verificar Contenedores') {
