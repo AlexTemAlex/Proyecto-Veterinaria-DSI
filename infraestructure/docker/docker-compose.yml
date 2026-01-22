@@ -1,4 +1,35 @@
-services:
-  test:
-    image: nginx
-    container_name: prueba-compose
+services:                   # Sección donde se definen todos los contenedores
+
+  postgres:                 # Servicio de base de datos PostgreSQL
+    container_name: postgres
+    image: postgres:15
+    restart: always         # Reiniciar automáticamente si ocurre un error o fallo
+    environment:            # Variables de entorno necesarias para configurar PostgreSQL
+      POSTGRES_USER: ${POSTGRES_USER}           # Usuario de PostgreSQL tomado del archivo .env
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}   # Contraseña del usuario
+      POSTGRES_HOST_AUTH_METHOD: ${POSTGRES_HOST_AUTH_METHOD}  # Método de autenticación
+    ports:
+      - "5432:5432"                             # Expone el puerto 5432 del contenedor al host
+    volumes:
+      - ../../database/postgres/data:/var/lib/postgresql/data # Volumen persistente para almacenar datos
+      - ../../database/postgres/postgres-init:/docker-entrypoint-initdb.d # Montar carpeta con scripts SQL
+    networks:
+      - net                                     # Conecta este servicio a la red "net"
+
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - net
+
+networks:
+  net:    # Se define una red Docker para que los servicios se comuniquen entre sí
+
+volumes:
+  redis_data:
+
