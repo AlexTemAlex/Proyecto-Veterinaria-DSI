@@ -27,6 +27,106 @@ services:                   # Sección donde se definen todos los contenedores
     networks:
       - net
 
+  pgadmin:                  # Servicio de pgAdmin (interfaz gráfica para PostgreSQL)
+    container_name: pgadmin  
+    image: dpage/pgadmin4:latest
+    restart: always  
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}         # Email de acceso
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}   # Contraseña de acceso
+      PGADMIN_LISTEN_PORT: 80                                 # Puerto interno donde escucha pgAdmin
+      PGADMIN_SERVER_MODE: "False"                            # Modo no servidor (modo de escritorio web)
+    ports:
+      - "5050:80"   # Exponer pgAdmin en el puerto 5050 del host
+    networks:
+      - net 
+    depends_on:
+      - postgres    # Esperar a que PostgreSQL inicie antes de arrancar pgAdmin
+
+  n8n:                      # Servicio de n8n
+    container_name: n8n
+    image: n8nio/n8n:latest
+    restart: always  
+    ports:
+      - "5678:5678"
+    environment: 
+      GENERIC_TIMEZONE: ${GENERIC_TIMEZONE}         # Zona horaria
+      N8N_HOST: ${N8N_HOST}                         # Hostname donde se servirá n8n
+      N8N_PORT: ${N8N_PORT}                         # Puerto donde correrá n8n
+      N8N_PROTOCOL: ${N8N_PROTOCOL}                 # Protocolo http/https
+      N8N_EDITOR_BASE_URL: ${N8N_EDITOR_BASE_URL}   # URL base del editor - Ingreso a la interfaz grafica
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}     # Clave de cifrado para credenciales
+      N8N_RUNNERS_ENABLED: true
+      N8N_GIT_NODE_DISABLE_BARE_REPOS: true
+      # CONFIGURACIÓN DE POSTGRES PARA N8N
+      DB_TYPE: ${DB_TYPE}                           # Tipo de base de datos que usa n8n
+      DB_POSTGRESDB_HOST: ${DB_POSTGRESDB_HOST}     # Host del PostgreSQL
+      DB_POSTGRESDB_PORT: ${DB_POSTGRESDB_PORT}     # Puerto del PostgreSQL
+      DB_POSTGRESDB_USER: ${DB_POSTGRESDB_USER}     # Usuario creado por nosotros para ingresar a PostgreSQL
+      DB_POSTGRESDB_PASSWORD: ${DB_POSTGRESDB_PASSWORD}  # Contraseña
+      DB_POSTGRESDB_DATABASE: ${DB_POSTGRESDB_DATABASE}  # Nombre de la BD creada en Postgres
+
+    volumes:
+      - ../../automation/n8n:/home/node/.n8n  # Persiste la configuración y datos de n8n
+    depends_on:
+      - postgres                # Requiere que primero inicie el contenedor de PostgreSQL
+    networks:
+      - net                     # Conectado a la red "net"
+
+  evolution-api-cloud:  # Servicio de Evolution API Cloud
+    container_name: evoapicloud  
+    image: evoapicloud/evolution-api:latest
+    restart: always 
+    ports:
+      - "3000:3000"
+    environment:
+      SERVER_URL: ${SERVER_URL}       # URL base del servidor
+      SERVER_PORT: ${SERVER_PORT}     # Puerto en que corre el servidor
+      JWT_SECRET: ${JWT_SECRET}       # Secreto para generar tokens JWT
+      AUTHENTICATION_API_KEY: ${AUTHENTICATION_API_KEY}  # API Key de autenticación creada por nosotros
+
+      # CONFIGURACIÓN DE LA BASE DE DATOS
+      DATABASE_ENABLED: "true"        # Activa el uso de base de datos
+      DATABASE_PROVIDER: "postgresql" # Motor de base de datos usado
+      DATABASE_CONNECTION_URI: ${DATABASE_CONNECTION_URI}  # URL de conexión que usara evolution para conectarse al contenedor postgres
+
+      DATABASE_SAVE_DATA_INSTANCE: "true"     # Habilita guardado de instancias
+      DATABASE_SAVE_DATA_NEW_MESSAGE: "true"  # Guarda nuevos mensajes
+      DATABASE_SAVE_MESSAGE_UPDATE: "true"    # Guarda actualizaciones
+      DATABASE_SAVE_DATA_CONTACTS: "true"     # Guarda contactos
+      DATABASE_SAVE_DATA_CHATS: "true"        # Guarda chats
+      DATABASE_SAVE_DATA_LABELS: "true"       # Guarda etiquetas
+      DATABASE_SAVE_DATA_HISTORIC: "true"     # Guarda historial
+
+      CONFIG_SESSION_PHONE_VERSION: ${CONFIG_SESSION_PHONE_VERSION}  # Versión del protocolo del cliente
+
+      CACHE_REDIS_ENABLED: "true"
+      CACHE_REDIS_URI: redis://redis:6379
+      CACHE_REDIS_PREFIX_KEY: evolution
+      CACHE_REDIS_SAVE_INSTANCES: "false"
+
+      CACHE_LOCAL_ENABLED: "true"   # Usar caché local en lugar de Redis
+
+    depends_on:
+      - postgres      # Debe iniciar después de que inicie el contenedor posgres
+      - redis
+    volumes:
+      - ../../automation/evolutionapi:/evolution/instances
+    networks:
+      - net           # Conectado a la red "net"
+
+nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"   # Puerto para la web pública
+    volumes:
+      - ../../frontend/dist:/usr/share/nginx/html # Pasamos los archivos de React a Nginx
+      - ../../infraestructure/nginx/default.conf:/etc/nginx/conf.d/default.conf # Pasamos nuestra configuración personalizada
+    networks:
+      - net
+
 networks:
   net:    # Se define una red Docker para que los servicios se comuniquen entre sí
 
