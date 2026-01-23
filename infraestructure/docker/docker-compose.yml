@@ -52,10 +52,8 @@ services:                   # Sección donde se definen todos los contenedores
     environment: 
       GENERIC_TIMEZONE: ${GENERIC_TIMEZONE}         # Zona horaria
       N8N_HOST: ${N8N_HOST}                         # Hostname donde se servirá n8n
-      N8N_PORT: ${N8N_PORT}                         # Puerto donde correrá n8n
-      N8N_PROTOCOL: ${N8N_PROTOCOL}                 # Protocolo http/https
-      N8N_EDITOR_BASE_URL: ${N8N_EDITOR_BASE_URL}   # URL base del editor - Ingreso a la interfaz grafica
       N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}     # Clave de cifrado para credenciales
+      N8N_SECURE_COOKIE: ${N8N_SECURE_COOKIE}
       N8N_RUNNERS_ENABLED: true
       N8N_GIT_NODE_DISABLE_BARE_REPOS: true
       # CONFIGURACIÓN DE POSTGRES PARA N8N
@@ -81,7 +79,6 @@ services:                   # Sección donde se definen todos los contenedores
       - "3000:3000"
     environment:
       SERVER_URL: ${SERVER_URL}       # URL base del servidor
-      SERVER_PORT: ${SERVER_PORT}     # Puerto en que corre el servidor
       JWT_SECRET: ${JWT_SECRET}       # Secreto para generar tokens JWT
       AUTHENTICATION_API_KEY: ${AUTHENTICATION_API_KEY}  # API Key de autenticación creada por nosotros
 
