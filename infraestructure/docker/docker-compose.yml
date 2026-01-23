@@ -2,7 +2,7 @@ services:                   # Sección donde se definen todos los contenedores
 
   postgres:                 # Servicio de base de datos PostgreSQL
     container_name: postgres
-    image: postgres:15
+    image: pgvector/pgvector:15
     restart: always         # Reiniciar automáticamente si ocurre un error o fallo
     environment:            # Variables de entorno necesarias para configurar PostgreSQL
       POSTGRES_USER: ${POSTGRES_USER}           # Usuario de PostgreSQL tomado del archivo .env
@@ -79,6 +79,7 @@ services:                   # Sección donde se definen todos los contenedores
       - "3000:3000"
     environment:
       SERVER_URL: ${SERVER_URL}       # URL base del servidor
+      SERVER_PORT: ${SERVER_PORT}
       JWT_SECRET: ${JWT_SECRET}       # Secreto para generar tokens JWT
       AUTHENTICATION_API_KEY: ${AUTHENTICATION_API_KEY}  # API Key de autenticación creada por nosotros
 
