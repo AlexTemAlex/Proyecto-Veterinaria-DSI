@@ -11,8 +11,8 @@ services:                   # Sección donde se definen todos los contenedores
     ports:
       - "5432:5432"                             # Expone el puerto 5432 del contenedor al host
     volumes:
-      - ../../database/postgres/data:/var/lib/postgresql/data # Volumen persistente para almacenar datos
-      - ../../database/postgres/postgres-init:/docker-entrypoint-initdb.d # Montar carpeta con scripts SQL
+      - ../../persistencia/postgres/data:/var/lib/postgresql/data # Volumen persistente para almacenar datos
+      - ../../persistencia/postgres/postgres-init:/docker-entrypoint-initdb.d # Montar carpeta con scripts SQL
     networks:
       - net                                     # Conecta este servicio a la red "net"
 
@@ -67,7 +67,7 @@ services:                   # Sección donde se definen todos los contenedores
       DB_POSTGRESDB_DATABASE: ${DB_POSTGRESDB_DATABASE}  # Nombre de la BD creada en Postgres
 
     volumes:
-      - ../../automation/n8n:/home/node/.n8n  # Persiste la configuración y datos de n8n
+      - ../../persistencia/n8n:/home/node/.n8n  # Persiste la configuración y datos de n8n
     depends_on:
       - postgres                # Requiere que primero inicie el contenedor de PostgreSQL
     networks:
@@ -111,7 +111,7 @@ services:                   # Sección donde se definen todos los contenedores
       - postgres      # Debe iniciar después de que inicie el contenedor posgres
       - redis
     volumes:
-      - ../../automation/evolutionapi:/evolution/instances
+      - ../../persistencia/evolutionapi:/evolution/instances
     networks:
       - net           # Conectado a la red "net"
 
