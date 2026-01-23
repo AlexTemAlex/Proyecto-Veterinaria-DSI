@@ -2,7 +2,7 @@ services:                   # Sección donde se definen todos los contenedores
 
   postgres:                 # Servicio de base de datos PostgreSQL
     container_name: postgres
-    image: pgvector/pgvector:15
+    image: pgvector/pgvector:pg14
     restart: always         # Reiniciar automáticamente si ocurre un error o fallo
     environment:            # Variables de entorno necesarias para configurar PostgreSQL
       POSTGRES_USER: ${POSTGRES_USER}           # Usuario de PostgreSQL tomado del archivo .env
