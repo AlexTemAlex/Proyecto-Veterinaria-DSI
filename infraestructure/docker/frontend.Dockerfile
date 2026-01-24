@@ -2,9 +2,9 @@
 FROM node:20-alpine AS build
 
 WORKDIR /app
-COPY package*.json ./
+COPY frontend/prueba/mi-app/package*.json ./
 RUN npm install
-COPY . .
+COPY frontend/prueba/mi-app/ ./
 RUN npm run build
 
 # Serve stage
