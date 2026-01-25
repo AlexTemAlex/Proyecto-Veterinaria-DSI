@@ -37,6 +37,9 @@ services:                   # Sección donde se definen todos los contenedores
       GENERIC_TIMEZONE: ${GENERIC_TIMEZONE}         # Zona horaria
       N8N_HOST: ${N8N_HOST}                         # Hostname donde se servirá n8n
       N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}     # Clave de cifrado para credenciales
+      N8N_PROTOCOL: ${N8N_PROTOCOL}
+      N8N_EDITOR_BASE_URL: ${N8N_EDITOR_BASE_URL}
+      WEBHOOK_URL: ${WEBHOOK_URL}
       N8N_SECURE_COOKIE: ${N8N_SECURE_COOKIE}
       N8N_RUNNERS_ENABLED: true
       N8N_GIT_NODE_DISABLE_BARE_REPOS: true
@@ -105,6 +108,9 @@ services:                   # Sección donde se definen todos los contenedores
     restart: always
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      - /opt/ssl:/etc/nginx/ssl:ro
     networks:
       - net
 
