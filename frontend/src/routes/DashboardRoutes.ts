@@ -44,9 +44,9 @@ export const DashboardMenu: DashboardMenuProps[] = [
   },
   {
     id: uuid(),
-    title: "Documentos", 
-    icon: "layers",     
-    link: "/pages/settings" 
+    title: "Documentos",
+    icon: "layers",
+    link: "/pages/documentos"
   },
   {
     id: uuid(),
@@ -65,7 +65,7 @@ export const DashboardMenu: DashboardMenuProps[] = [
     icon: "layers",
     children: [
       { id: uuid(), link: "/pages/profile", name: "Profile" },
-      { id: uuid(), link: "/pages/settings", name: "Settings" },
+      { id: uuid(), link: "/pages/documentos", name: "Documentos" },
       { id: uuid(), link: "/pages/billing", name: "Billing" },
       { id: uuid(), link: "/pages/pricing", name: "Pricing" },
       { id: uuid(), link: "/not-found", name: "404 Error" },
