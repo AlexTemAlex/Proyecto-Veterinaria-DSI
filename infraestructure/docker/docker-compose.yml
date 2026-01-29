@@ -43,6 +43,10 @@ services:                   # Sección donde se definen todos los contenedores
       N8N_SECURE_COOKIE: ${N8N_SECURE_COOKIE}
       N8N_RUNNERS_ENABLED: true
       N8N_GIT_NODE_DISABLE_BARE_REPOS: true
+      N8N_PROXY_HOPS: 1
+      N8N_TRUST_PROXY: 1
+      N8N_TRUST_HOST: 1
+      N8N_PUSH_BACKEND: "websocket"
       # CONFIGURACIÓN DE POSTGRES PARA N8N
       DB_TYPE: ${DB_TYPE}                           # Tipo de base de datos que usa n8n
       DB_POSTGRESDB_HOST: ${DB_POSTGRESDB_HOST}     # Host del PostgreSQL
