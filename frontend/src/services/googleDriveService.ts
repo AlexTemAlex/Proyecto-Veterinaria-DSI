@@ -2,7 +2,7 @@ import { GoogleDriveFile, GoogleDriveFolder, Cita } from "types/index";
 
 // Backend API URL
 //const API_BASE_URL = import.meta.env.VITE_API_URL;
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "http://backend-python:8000";
 
 /**
  * Make API request
