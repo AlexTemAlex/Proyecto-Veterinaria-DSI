@@ -227,7 +227,7 @@ const FileViewer = ({
                     </td>
                     <td className="align-middle">{formatFileSize(file.size)}</td>
                     <td className="align-middle">
-                      <small>{formatDate(file.modifiedTime)}</small>
+                      <small>{formatDate(file.createdTime)}</small>
                     </td>
                     <td className="align-middle text-end">
                       <div className="d-flex justify-content-end gap-2">
