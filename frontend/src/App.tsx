@@ -10,7 +10,7 @@ import SignUp from "./pages/auth/SignUp";
 import Dashboard from "pages/dashboard/Index";
 import Billing from "pages/dashboard/pages/Billing";
 import Pricing from "pages/dashboard/pages/Pricing";
-import Settings from "pages/dashboard/pages/Settings";
+import Documentos from "pages/dashboard/pages/Documentos";
 import Profile from "pages/dashboard/pages/Profile";
 import NotFound from "pages/dashboard/pages/NotFound";
 import LayoutVertical from "pages/dashboard/LayoutVertical";
@@ -66,8 +66,8 @@ const App = () => {
               Component: Profile,
             },
             {
-              path: "settings",
-              Component: Settings,
+              path: "documentos",
+              Component: Documentos,
             },
             {
               path: "billing",

@@ -98,24 +98,32 @@ export interface FeaturesDataProps {
   description: string;
 }
 
-export interface ChildrenItemProps {
+// Google Drive Types
+export interface GoogleDriveFolder {
   id: string;
-  title?: string;
-  name?: string;
-  link: string;
-  children?: ChildrenItemProps[];
-  icon?: string;
-  badge?: string;
-  badgecolor?: string;
+  name: string;
+  mimeType: string;
+  createdTime: string;
+  modifiedTime: string;
+  fileCount?: number;
 }
 
-export interface DashboardMenuProps {
+export interface GoogleDriveFile {
   id: string;
-  title: string;
-  link?: string;
-  grouptitle?: boolean;
-  children?: ChildrenItemProps[];
-  icon?: string;
-  badge?: string;
-  badgecolor?: string;
+  name: string;
+  mimeType: string;
+  size?: string;
+  createdTime: string;
+  modifiedTime: string;
+  webViewLink?: string;
+  webContentLink?: string;
+  thumbnailLink?: string;
+  iconLink?: string;
+}
+
+export interface GoogleDriveConfig {
+  clientId: string;
+  apiKey: string;
+  scope: string;
+  discoveryDocs: string[];
 }
