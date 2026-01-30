@@ -5,6 +5,9 @@ WORKDIR /app
 COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ ./
+
+ENV VITE_API_URL=https://api.petsi-dsi.website
+
 RUN npm run build
 
 # Serve stage
