@@ -21,6 +21,16 @@ export interface GoogleDriveFile {
   iconLink?: string;
 }
 
+// Inventario (Google Sheets)
+export interface Producto {
+  codigo: string;
+  producto: string;
+  categoria: string;
+  subcategoria: string;
+  presentacion: string;
+  stock: number;
+}
+
 export interface GoogleAuthTokens {
   access_token: string;
   refresh_token?: string;

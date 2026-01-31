@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import fileUpload from 'express-fileupload';
 import googleDriveRoutes from './routes/googleDriveRoutes';
+import inventarioRoutes from './routes/inventarioRoutes';
 
 // Load environment variables
 dotenv.config();
@@ -24,6 +25,7 @@ app.use(fileUpload({
 
 // Routes
 app.use('/api/google-drive', googleDriveRoutes);
+app.use('/api/inventario', inventarioRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req: Request, res: Response) => {
