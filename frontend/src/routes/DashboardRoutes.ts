@@ -40,7 +40,7 @@ export const DashboardMenu: DashboardMenuProps[] = [
     id: uuid(),
     title: "Inventario", 
     icon: "layers",     
-    link: "/pages/profile" 
+    link: "/pages/inventario"
   },
   {
     id: uuid(),
@@ -64,7 +64,7 @@ export const DashboardMenu: DashboardMenuProps[] = [
     title: "Pages",
     icon: "layers",
     children: [
-      { id: uuid(), link: "/pages/profile", name: "Profile" },
+      { id: uuid(), link: "/pages/inventario", name: "Inventario" },
       { id: uuid(), link: "/pages/documentos", name: "Documentos" },
       { id: uuid(), link: "/pages/billing", name: "Billing" },
       { id: uuid(), link: "/pages/pricing", name: "Pricing" },

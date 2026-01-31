@@ -11,7 +11,7 @@ import Dashboard from "pages/dashboard/Index";
 import Billing from "pages/dashboard/pages/Billing";
 import Pricing from "pages/dashboard/pages/Pricing";
 import Documentos from "pages/dashboard/pages/Documentos";
-import Profile from "pages/dashboard/pages/Profile";
+import Inventario from "pages/dashboard/pages/Inventario";
 import NotFound from "pages/dashboard/pages/NotFound";
 import LayoutVertical from "pages/dashboard/LayoutVertical";
 import Documentation from "pages/dashboard/Documentation";
@@ -62,8 +62,8 @@ const App = () => {
           path: "/pages",
           children: [
             {
-              path: "profile",
-              Component: Profile,
+              path: "inventario",
+              Component: Inventario,
             },
             {
               path: "documentos",
