@@ -65,7 +65,7 @@ const FileViewer = ({
 
     setIsUploading(true);
     try {
-      await onUploadFile(selectedFile);
+      await onUploadFile(selectedFile); // Aquí se envía el archivo real
       setSelectedFile(null);
       setShowUploadModal(false);
       if (fileInputRef.current) {
@@ -78,6 +78,7 @@ const FileViewer = ({
       setIsUploading(false);
     }
   };
+
 
   const handleOpenRenameModal = (file: GoogleDriveFile) => {
     setFileToRename(file);
@@ -148,9 +149,12 @@ const FileViewer = ({
             <h5 className="mb-0">
               {selectedFolder ? selectedFolder.name : "Selecciona una carpeta"}
             </h5>
-            {files.length > 0 && (
-              <small className="text-muted">{files.length} archivo(s)</small>
+            {Array.isArray(files) && (
+              <small className="text-muted">
+                {files.filter(file => file && file.id && file.name).length} archivo(s)
+              </small>
             )}
+
           </div>
           <Button
             variant="primary"
@@ -198,77 +202,81 @@ const FileViewer = ({
                 </tr>
               </thead>
               <tbody>
-                {files.map((file) => (
-                  <tr key={file.id}>
-                    <td className="align-middle">
-                      <div className="d-flex align-items-center">
-                        {file.thumbnailLink ? (
-                          <img
-                            src={file.thumbnailLink}
-                            alt={file.name}
-                            style={{
-                              width: "32px",
-                              height: "32px",
-                              objectFit: "cover",
-                              marginRight: "8px",
-                              borderRadius: "4px",
-                            }}
-                          />
-                        ) : (
-                          getFileIcon(file.mimeType)
-                        )}
-                        <span className="text-truncate" style={{ maxWidth: "300px" }}>
-                          {file.name}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="align-middle">
-                      {getMimeTypeBadge(file.mimeType)}
-                    </td>
-                    <td className="align-middle">{formatFileSize(file.size)}</td>
-                    <td className="align-middle">
-                      <small>{formatDate(file.createdTime)}</small>
-                    </td>
-                    <td className="align-middle text-end">
-                      <div className="d-flex justify-content-end gap-2">
-                        {file.webViewLink && (
-                          <Button
-                            variant="outline-primary"
-                            size="sm"
-                            onClick={() => onOpenFile(file.webViewLink!)}
-                            title="Abrir en Google Drive"
-                          >
-                            <ExternalLink size={16} />
-                          </Button>
-                        )}
-                        <Button
-                          variant="outline-info"
-                          size="sm"
-                          onClick={() => handleOpenRenameModal(file)}
-                          title="Renombrar"
-                        >
-                          <Edit2 size={16} />
-                        </Button>
-                        <Button
-                          variant="outline-success"
-                          size="sm"
-                          onClick={() => onDownloadFile(file.id, file.name)}
-                          title="Descargar"
-                        >
-                          <Download size={16} />
-                        </Button>
-                        <Button
-                          variant="outline-danger"
-                          size="sm"
-                          onClick={() => setFileToDelete(file.id)}
-                          title="Eliminar"
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {Array.isArray(files) &&
+                  files.length > 0 &&
+                  files.map((file) =>
+                    !file || !file.id || !file.name ? null : (
+                      <tr key={file.id}>
+                        <td className="align-middle">
+                          <div className="d-flex align-items-center">
+                            {file.thumbnailLink ? (
+                              <img
+                                src={file.thumbnailLink}
+                                alt={file.name}
+                                style={{
+                                  width: "32px",
+                                  height: "32px",
+                                  objectFit: "cover",
+                                  marginRight: "8px",
+                                  borderRadius: "4px",
+                                }}
+                              />
+                            ) : (
+                              getFileIcon(file.mimeType)
+                            )}
+                            <span className="text-truncate" style={{ maxWidth: "300px" }}>
+                              {file.name}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="align-middle">
+                          {getMimeTypeBadge(file.mimeType)}
+                        </td>
+                        <td className="align-middle">{formatFileSize(file.size)}</td>
+                        <td className="align-middle">
+                          <small>{formatDate(file.modifiedTime)}</small>
+                        </td>
+                        <td className="align-middle text-end">
+                          <div className="d-flex justify-content-end gap-2">
+                            {file.webViewLink && (
+                              <Button
+                                variant="outline-primary"
+                                size="sm"
+                                onClick={() => onOpenFile(file.webViewLink!)}
+                                title="Abrir en Google Drive"
+                              >
+                                <ExternalLink size={16} />
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline-info"
+                              size="sm"
+                              onClick={() => handleOpenRenameModal(file)}
+                              title="Renombrar"
+                            >
+                              <Edit2 size={16} />
+                            </Button>
+                            <Button
+                              variant="outline-success"
+                              size="sm"
+                              onClick={() => onDownloadFile(file.id, file.name)}
+                              title="Descargar"
+                            >
+                              <Download size={16} />
+                            </Button>
+                            <Button
+                              variant="outline-danger"
+                              size="sm"
+                              onClick={() => setFileToDelete(file.id)}
+                              title="Eliminar"
+                            >
+                              <Trash2 size={16} />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  )}
               </tbody>
             </Table>
           )}
