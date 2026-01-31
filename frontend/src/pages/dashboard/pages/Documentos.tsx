@@ -129,9 +129,9 @@ const Documentos = () => {
     }
   };
 
-  const handleDownloadFile = async (fileId: string, fileName: string) => {
+  const handleDownloadFile = async (fileId: string) => {
     try {
-      await downloadFile(fileId, fileName);
+      await downloadFile(fileId);
     } catch (error) {
       throw error;
     }

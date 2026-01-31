@@ -3,9 +3,7 @@ import { GoogleDriveFile, GoogleDriveFolder, Cita } from "types/index";
 // Backend API URL
 const API_BASE_URL = "/api";
 
-/**
- * Make API request
- */
+/** Make API request */
 const apiRequest = async <T>(
   endpoint: string,
   options: RequestInit = {}
@@ -27,160 +25,120 @@ const apiRequest = async <T>(
 
   return data as T;
 };
-
-/**
- * List all folders in Google Drive
- */
-type FoldersResponse = {
-  carpetas: GoogleDriveFolder[];
-};
-
+/** ========================
+ * DRIVE
+ * ======================== */
+/** List all folders */
 export const listFolders = async (): Promise<GoogleDriveFolder[]> => {
-  const data = await apiRequest<FoldersResponse>("/api/drive/folders");
+  const data = await apiRequest<{ carpetas: GoogleDriveFolder[] }>("/drive/folders");
   return data.carpetas;
 };
 
-
-/**
- * List files in a specific folder
- */
-type FilesResponse = {
-  archivos: GoogleDriveFile[];
-};
-
+/** List files in a specific folder */
 export const listFilesInFolder = async (
-  folder_id: string
+  folderId: string
 ): Promise<GoogleDriveFile[]> => {
-  const data = await apiRequest<FilesResponse>(
-    `/api/drive/folders/${folder_id}/files`
+  const data = await apiRequest<{ archivos: GoogleDriveFile[] }>(
+    `/drive/folders/${folderId}/files`
   );
   return data.archivos;
 };
 
-
-/**
- * Create a new folder
- */
-export const createFolder = (
-  folderName: string,
-  parentFolderId?: string
-): Promise<GoogleDriveFolder> => {
-  return apiRequest<GoogleDriveFolder>("/folders", {
+/** Create a new folder */
+export const createFolder = async (folderName: string): Promise<GoogleDriveFolder> => {
+  return apiRequest<GoogleDriveFolder>("/drive/folders", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: folderName, parentFolderId }),
+    body: new URLSearchParams({ name: folderName }),
   });
 };
 
-/**
- * Rename a folder
- */
-export const renameFolder = (
+/** Rename a folder */
+export const renameFolder = async (
   folderId: string,
   newName: string
 ): Promise<GoogleDriveFolder> => {
-  return apiRequest<GoogleDriveFolder>(`/folders/${folderId}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: newName }),
+  return apiRequest<GoogleDriveFolder>("/drive/folder/rename", {
+    method: "PUT",
+    body: new URLSearchParams({ folder_id: folderId, new_name: newName }),
   });
 };
 
-/**
- * Delete a folder
- */
-export const deleteFolder = (folderId: string): Promise<void> => {
-  return apiRequest<void>(`/folders/${folderId}`, {
+/** Delete a folder */
+export const deleteFolder = async (folderId: string): Promise<void> => {
+  return apiRequest<void>(`/drive/folder?folder_id=${folderId}`, {
     method: "DELETE",
   });
 };
 
-/**
- * Upload a file to Google Drive
- */
+/** Upload a file to a folder */
 export const uploadFile = async (
   file: File,
-  folderId?: string
+  folderId: string
 ): Promise<GoogleDriveFile> => {
-  const formData = new FormData();
-  formData.append("file", file);
-
-  if (folderId) {
-    formData.append("folderId", folderId);
+  const MAX_SIZE = 100 * 1024 * 1024; // 100 MB
+  if (file.size > MAX_SIZE) {
+    throw new Error("El archivo supera el límite de 100 MB");
   }
 
-  return apiRequest<GoogleDriveFile>("/files", {
+  // Creamos FormData para enviar archivo y otros datos
+  const formData = new FormData();
+  formData.append("file", file);       // campo que n8n espera: "file"
+  formData.append("folder_id", folderId);
+
+  // Llamamos a la API usando apiRequest
+  // apiRequest detectará que es FormData y no agregará JSON headers
+  return apiRequest<GoogleDriveFile>("/drive/files/upload", {
     method: "POST",
     body: formData,
   });
 };
 
-/**
- * Rename a file
- */
-export const renameFile = (
+/** Rename a file */
+export const renameFile = async (
   fileId: string,
   newName: string
 ): Promise<GoogleDriveFile> => {
-  return apiRequest<GoogleDriveFile>(`/files/${fileId}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: newName }),
+  return apiRequest<GoogleDriveFile>("/drive/file/rename", {
+    method: "PUT",
+    body: new URLSearchParams({ file_id: fileId, new_name: newName }),
   });
 };
 
-/**
- * Delete a file
- */
-export const deleteFile = (fileId: string): Promise<void> => {
-  return apiRequest<void>(`/files/${fileId}`, {
+/** Delete a file */
+export const deleteFile = async (fileId: string): Promise<void> => {
+  return apiRequest<void>(`/drive/file?file_id=${fileId}`, {
     method: "DELETE",
   });
 };
 
-
-/**
- * Download a file
- */
-export const downloadFile = async (
-  fileId: string,
-  fileName: string
-): Promise<void> => {
+/** Download a file */
+export const downloadFile = async (fileId: string): Promise<void> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/files/${fileId}/download`);
-
+    const response = await fetch(`${API_BASE_URL}/drive/file/download?file_id=${fileId}`);
     if (!response.ok) {
-      throw new Error("Failed to download file");
+      throw new Error("Failed to get download link");
     }
 
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
+    const data = await response.json();
+    const downloadUrl = data.webContentLink;
+    if (!downloadUrl) {
+      throw new Error("Download link not found in response");
+    }
 
-    // Create a temporary link and trigger download
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    // Abrimos el link en una nueva pestaña para disparar la descarga
+    window.open(downloadUrl, "_blank");
   } catch (error) {
     console.error("Error downloading file:", error);
     throw error;
   }
 };
 
-/**
- * Open a file in Google Drive (in a new tab)
- */
+/** Open a file in Google Drive (in a new tab) */
 export const openFileInDrive = (webViewLink: string): void => {
   window.open(webViewLink, "_blank");
 };
 
-
-/**
- * CITAS 
- */
+/** CITAS  */
 export const getCitas = (limit = 50, offset = 0) =>
   apiRequest<Cita[]>(`/api/citas?limit=${limit}&offset=${offset}`);
 
@@ -198,9 +156,7 @@ export const getCita = (id: string) =>
 export const getCitasHoy = () =>
   apiRequest<Cita[]>(`/api/citas/hoy`);
 
-/**
- * Chatbot
- */
+/** Chatbot */
 export const sendChatbot = (mensaje: string) =>
   apiRequest<{ respuesta: string }>("/chatbot", {
     method: "POST",
@@ -209,9 +165,7 @@ export const sendChatbot = (mensaje: string) =>
   });
 
 
-/**
- * Format file size
- */
+/** Format file size */
 export const formatFileSize = (bytes: string | undefined): string => {
   if (!bytes) return "N/A";
   const size = parseInt(bytes);
@@ -222,9 +176,7 @@ export const formatFileSize = (bytes: string | undefined): string => {
   return (size / (1024 * 1024 * 1024)).toFixed(2) + " GB";
 };
 
-/**
- * Format date
- */
+/** Format date */
 export const formatDate = (dateString?: string): string => {
   if (!dateString) return "-";
 
@@ -239,3 +191,12 @@ export const formatDate = (dateString?: string): string => {
   );
 };
 
+export const checkHealth = async (): Promise<boolean> => {
+  try {
+    const res = await fetch("/api/health");
+    const data = await res.json();
+    return data.status === "OK";
+  } catch {
+    return false;
+  }
+};

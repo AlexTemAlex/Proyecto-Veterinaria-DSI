@@ -10,7 +10,7 @@ export interface Producto {
   stock: number;
 }
 
-const API_BASE_URL = "http://localhost:3001/api";
+const API_BASE_URL = "/api";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -28,12 +28,27 @@ const InventarioTable = ({ searchTerm }: InventarioTableProps) => {
     const fetchInventario = async () => {
       setIsLoading(true);
       setError(null);
+
       try {
-        const response = await fetch(`${API_BASE_URL}/inventario`);
+        const response = await fetch(`${API_BASE_URL}/drive/products`, {
+          credentials: "include",
+        });
+
         if (!response.ok) {
           throw new Error("Error al obtener el inventario");
         }
-        const data: Producto[] = await response.json();
+
+        const json = await response.json();
+
+        const data: Producto[] = (json.products ?? []).map((p: any) => ({
+          codigo: p["Código"],
+          producto: p["Producto"],
+          categoria: p["Categoría"],
+          subcategoria: p["Subcategoría"],
+          presentacion: p["Presentación"],
+          stock: Number(p["Stock Máximo"] ?? 0),
+        }));
+
         setProductos(data);
       } catch (err) {
         console.error("Error fetching inventario:", err);
