@@ -24,7 +24,7 @@ app.add_middleware(
 # ========================
 # CONFIG
 # ========================
-N8N_BASE_URL = "https://n8n.petsi-dsi.website/webhook"
+N8N_BASE_URL = "https://n8n:5678/webhook"
 
 # ========================
 # MODELS
