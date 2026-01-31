@@ -27,6 +27,9 @@ import GeneralSetting from "./settings/GeneralSetting";
 import Notifications from "./settings/Notifications";
 import Preferences from "./settings/Preferences";
 
+// sub components for /pages/inventario
+import InventarioTable from "./inventario/InventarioTable";
+
 // sub components for /pages/documentos
 import FolderSidebar from "./documentos/FolderSidebar";
 import FileViewer from "./documentos/FileViewer";
@@ -48,6 +51,7 @@ export {
   GeneralSetting,
   Notifications,
   Preferences,
+  InventarioTable,
   FolderSidebar,
   FileViewer,
 };
