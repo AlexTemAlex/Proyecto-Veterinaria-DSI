@@ -8,7 +8,7 @@ import SignIn from "./pages/auth/SignIn";
 import ForgetPassword from "pages/auth/ForgetPassword";
 import SignUp from "./pages/auth/SignUp";
 import Dashboard from "pages/dashboard/Index";
-import Billing from "pages/dashboard/pages/Billing";
+import Citas from "pages/dashboard/pages/Citas";
 import Pricing from "pages/dashboard/pages/Pricing";
 import Documentos from "pages/dashboard/pages/Documentos";
 import Inventario from "pages/dashboard/pages/Inventario";
@@ -17,6 +17,7 @@ import LayoutVertical from "pages/dashboard/LayoutVertical";
 import Documentation from "pages/dashboard/Documentation";
 import ChangeLog from "pages/dashboard/Changelog";
 import ApiDemo from "./pages/dashboard/pages/ApiDemo";
+import { NotificationProvider } from "context/NotificationContext";
 
 // import bootstrap components
 import Accordion from "bootstrap-components/Accordions";
@@ -70,8 +71,8 @@ const App = () => {
               Component: Documentos,
             },
             {
-              path: "billing",
-              Component: Billing,
+              path: "citas",
+              Component: Citas,
             },
             {
               path: "pricing",
@@ -153,7 +154,11 @@ const App = () => {
       ],
     },
   ]);
-  return <RouterProvider router={router} />;
+  return (
+    <NotificationProvider>
+      <RouterProvider router={router} />
+    </NotificationProvider>
+  );
 };
 
 export default App;

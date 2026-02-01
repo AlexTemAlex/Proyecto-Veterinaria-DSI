@@ -16,8 +16,10 @@ import {
   deleteFile,
   openFileInDrive,
 } from "services/googleDriveService";
+import { useNotifications } from "context/NotificationContext";
 
 const Documentos = () => {
+  const { addNotification } = useNotifications();
   const [folders, setFolders] = useState<GoogleDriveFolder[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<GoogleDriveFolder | null>(
     null
@@ -73,6 +75,7 @@ const Documentos = () => {
     try {
       await createFolder(folderName);
       await loadFolders();
+      addNotification("documentos", "agregar", `carpeta "${folderName}"`);
     } catch (error) {
       throw error;
     }
@@ -82,8 +85,8 @@ const Documentos = () => {
     try {
       await renameFolder(folderId, newName);
       await loadFolders();
+      addNotification("documentos", "editar", `carpeta renombrada a "${newName}"`);
 
-      // Update selected folder name if it's the one being renamed
       if (selectedFolder?.id === folderId) {
         setSelectedFolder({ ...selectedFolder, name: newName });
       }
@@ -94,11 +97,13 @@ const Documentos = () => {
 
   const handleDeleteFolder = async (folderId: string) => {
     try {
+      const folderName = folders.find((f) => f.id === folderId)?.name || "carpeta";
       await deleteFolder(folderId);
       if (selectedFolder?.id === folderId) {
         setSelectedFolder(null);
       }
       await loadFolders();
+      addNotification("documentos", "eliminar", `carpeta "${folderName}"`);
     } catch (error) {
       throw error;
     }
@@ -113,7 +118,8 @@ const Documentos = () => {
     try {
       await uploadFile(file, selectedFolder.id);
       await loadFiles(selectedFolder.id);
-      await loadFolders(); // Reload to update file count
+      await loadFolders();
+      addNotification("documentos", "agregar", `archivo "${file.name}"`);
     } catch (error) {
       throw error;
     }
@@ -124,6 +130,7 @@ const Documentos = () => {
     try {
       await renameFile(fileId, newName);
       await loadFiles(selectedFolder.id);
+      addNotification("documentos", "editar", `archivo renombrado a "${newName}"`);
     } catch (error) {
       throw error;
     }
@@ -140,9 +147,11 @@ const Documentos = () => {
   const handleDeleteFile = async (fileId: string) => {
     if (!selectedFolder) return;
     try {
+      const fileName = files.find((f) => f.id === fileId)?.name || "archivo";
       await deleteFile(fileId);
       await loadFiles(selectedFolder.id);
-      await loadFolders(); // Reload to update file count
+      await loadFolders();
+      addNotification("documentos", "eliminar", `archivo "${fileName}"`);
     } catch (error) {
       throw error;
     }

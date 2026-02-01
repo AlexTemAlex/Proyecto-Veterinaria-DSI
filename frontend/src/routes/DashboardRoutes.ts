@@ -38,21 +38,21 @@ export const DashboardMenu: DashboardMenuProps[] = [
   },
   {
     id: uuid(),
-    title: "Inventario", 
-    icon: "layers",     
+    title: "Inventario",
+    icon: "package",
     link: "/pages/inventario"
   },
   {
     id: uuid(),
     title: "Documentos",
-    icon: "layers",
+    icon: "file-text",
     link: "/pages/documentos"
   },
   {
     id: uuid(),
-    title: "Citas", 
-    icon: "layers",     
-    link: "/pages/billing" 
+    title: "Citas",
+    icon: "calendar",
+    link: "/pages/citas"
   },
   {
     id: uuid(),
@@ -66,7 +66,7 @@ export const DashboardMenu: DashboardMenuProps[] = [
     children: [
       { id: uuid(), link: "/pages/inventario", name: "Inventario" },
       { id: uuid(), link: "/pages/documentos", name: "Documentos" },
-      { id: uuid(), link: "/pages/billing", name: "Billing" },
+      { id: uuid(), link: "/pages/citas", name: "Citas" },
       { id: uuid(), link: "/pages/pricing", name: "Pricing" },
       { id: uuid(), link: "/not-found", name: "404 Error" },
     ],
