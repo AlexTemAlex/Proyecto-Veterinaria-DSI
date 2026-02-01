@@ -118,6 +118,17 @@ services:                   # Sección donde se definen todos los contenedores
     networks:
       - net
 
+  backend-python:
+    build:
+      context: ../../
+      dockerfile: infraestructure/docker/backend.Dockerfile
+    container_name: backend-python
+    restart: always
+    expose:
+      - "8000"
+    networks:
+      - net
+
 networks:
   net:    # Se define una red Docker para que los servicios se comuniquen entre sí
 

@@ -1,8 +1,8 @@
 //import node module libraries
-import { Outlet } from "react-router";
+import { Outlet } from "react-router-dom";
 import { Container } from "react-bootstrap";
 
-const AuthenticationLayout = () => {
+export default function AuthenticationLayout() {
   return (
     <section className="bg-light">
       <Container className="d-flex flex-column">
@@ -12,5 +12,3 @@ const AuthenticationLayout = () => {
     </section>
   );
 };
-
-export default AuthenticationLayout;
