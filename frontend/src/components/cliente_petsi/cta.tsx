@@ -3,14 +3,12 @@ import './cta.css';
 export default function cta() {
   return (
     <section className="cta">
-      <h2>Agenda una cita para tu mascota hoy</h2>
-      <p>
-        Nuestro equipo veterinario está listo para cuidar a tu mejor amigo.
+      <h2>¿Listo para brindarle lo mejor a tu mascota?</h2>
+      <p>Reserva hoy mismo una consulta preventiva en PetSI y mantén a tu
+mejor amigo sano y feliz.
       </p>
 
-      <button className="cta-btn">
-        Reservar cita
-      </button>
+      {/* Botón removido para evitar redundancia con otros CTAs */}
     </section>
   );
 }

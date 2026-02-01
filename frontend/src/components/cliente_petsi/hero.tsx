@@ -10,8 +10,8 @@ export default function hero() {
                 </h1>
 
                 <p>
-                    Brindamos atención médica de primer nivel con enfoque en confianza,
-                    limpieza y bienestar integral.
+                    Brindamos atención médica de primer nivel con un enfoque en la confianza,
+                    la limpieza y el bienestar integral de tu mascota.
                 </p>
 
                 <div className="hero-buttons">

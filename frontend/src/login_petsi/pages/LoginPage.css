@@ -1,0 +1,129 @@
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #0B5ED7 0%, #4CAF50 100%);
+  gap: 0;
+  overflow: hidden;
+}
+
+.login-image-section {
+  flex: 1;
+  position: relative;
+  background: white;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: 40px;
+  height: auto;
+  min-height: fit-content;
+  border-radius: 20px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.14);
+  max-width: 1000px;
+  gap: 20px;
+}
+
+.login-logo {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 28px;
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  z-index: 10;
+  font-family: 'Poppins', sans-serif;
+  letter-spacing: 2px;
+}
+
+.login-image {
+  width: auto;
+  height: auto;
+  max-height: 550px;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 20px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+  margin: 0 auto;
+}
+
+.login-frame {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+  flex: 1;
+  gap: 40px;
+}
+
+.login-image-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .login-image-section {
+    flex: 0.9;
+    padding: 30px;
+  }
+
+  .login-logo {
+    font-size: 24px;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 1024px) {
+  .login-page {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .login-image-section {
+    flex: none;
+    height: 260px;
+    padding: 12px;
+    order: -1;
+  }
+
+  .login-image {
+    height: 100%;
+    border-radius: 12px;
+  }
+
+  .login-logo {
+    font-size: 20px;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 480px) {
+  .login-image-section {
+    min-height: 250px;
+    padding: 16px;
+  }
+
+  .login-logo {
+    font-size: 16px;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    letter-spacing: 1px;
+  }
+
+  .login-image {
+    border-radius: 12px;
+  }
+}
