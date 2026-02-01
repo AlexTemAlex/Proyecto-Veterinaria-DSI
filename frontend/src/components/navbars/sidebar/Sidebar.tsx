@@ -270,6 +270,24 @@ const Sidebar: React.FC<SidebarProps> = ({ showMenu, toggleMenu }) => {
           })}
         </Accordion>
         {/* end of Dashboard Menu */}
+
+        {/* Separador y Cerrar sesión */}
+        <div className="border-top my-3 mx-4"></div>
+        <ul className="navbar-nav flex-column">
+          <li className="nav-item">
+            <Link
+              to="/auth/sign-in"
+              className="nav-link text-danger"
+              onClick={() => {
+                localStorage.clear();
+                sessionStorage.clear();
+              }}
+            >
+              <i className="nav-icon fe fe-log-out me-2"></i>
+              Cerrar sesión
+            </Link>
+          </li>
+        </ul>
       </SimpleBar>
     </Fragment>
   );
