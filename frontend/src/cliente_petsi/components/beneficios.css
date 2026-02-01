@@ -2,6 +2,17 @@
   background-color: var(--light-blue);
 }
 
+/* petsi brand colors for headings */
+.beneficios .petsi-brand .pet-text {
+  color: #0B5ED7;
+  font-weight: 800;
+}
+
+.beneficios .petsi-brand .si-text {
+  color: #4CAF50;
+  font-weight: 800;
+}
+
 .beneficios-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

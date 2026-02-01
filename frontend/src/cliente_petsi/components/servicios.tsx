@@ -13,25 +13,25 @@ export default function Servicios() {
         <div className="servicio-card">
           <img src={estetoscopio} alt="Consulta General" className="servicio-icon" />
           <h3>Consulta General</h3>
-          <p>Chequeos médicos completos</p>
+          <p>Chequeos médicos para tu mascota.</p>
         </div>
 
         <div className="servicio-card">
           <img src={jeringa} alt="Vacunación" className="servicio-icon" />
           <h3>Vacunación</h3>
-          <p>Protección esencial</p>
+          <p>Protección esencial para su salud.</p>
         </div>
 
         <div className="servicio-card">
           <img src={cirugia} alt="Cirugía" className="servicio-icon" />
           <h3>Cirugía</h3>
-          <p>Procedimientos avanzados</p>
+          <p>Cuidado avanzado y recuperación asistida.</p>
         </div>
 
         <div className="servicio-card">
           <img src={peluqueria} alt="Peluquería" className="servicio-icon" />
           <h3>Peluquería</h3>
-          <p>Cuidado e higiene</p>
+          <p>Higiene y mimos para su comodidad.</p>
         </div>
       </div>
     </section>

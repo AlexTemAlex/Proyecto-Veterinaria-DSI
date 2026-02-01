@@ -29,6 +29,7 @@ import ApiDemo from "pages/dashboard/pages/ApiDemo";
 import SignIn from "pages/auth/SignIn";
 import SignUp from "pages/auth/SignUp";
 import ForgetPassword from "pages/auth/ForgetPassword";
+import LoginPage from "login_petsi/pages/LoginPage";
 
 // bootstrap components
 import Accordion from "bootstrap-components/Accordions";
@@ -129,6 +130,12 @@ const router = createBrowserRouter([
         ],
       },
     ],
+  },
+
+  // 🌐 LOGIN PETSI (SIN LAYOUT)
+  {
+    path: "/auth/login",
+    Component: LoginPage,
   },
 
   // 🔐 AUTENTICACIÓN

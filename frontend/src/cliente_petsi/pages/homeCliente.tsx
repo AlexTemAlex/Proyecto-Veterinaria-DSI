@@ -4,7 +4,6 @@ import Servicios from '../components/servicios';
 import Beneficios from '../components/beneficios';
 import CTA from '../components/cta';
 import Contacto from '../components/contacto';
-import Footer from '../components/footer';
 import WhatsAppButton from '../components/whatsappButton';
 
 
@@ -19,7 +18,6 @@ export default function HomeCliente() {
         <Beneficios />
         <CTA />
         <Contacto />
-        <Footer />
         <WhatsAppButton />
       </main>
     </>
