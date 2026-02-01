@@ -23,7 +23,7 @@ export default function navbar() {
         <li><a href="#servicios" onClick={(e) => { e.preventDefault(); handleNavClick('servicios'); }} className="nav-link">Servicios</a></li>
         <li><a href="#beneficios" onClick={(e) => { e.preventDefault(); handleNavClick('beneficios'); }} className="nav-link">Nosotros</a></li>
         <li><a href="#contacto" onClick={(e) => { e.preventDefault(); handleNavClick('contacto'); }} className="nav-link">Contacto</a></li>
-        <li><Link to="/auth/sign-in" className="btn-primary"> Iniciar sesión </Link></li>
+        <li><Link to="/auth/sign-in" className="navbar2-btn"> Iniciar sesión </Link></li>
       </ul>
     </nav>
   );
