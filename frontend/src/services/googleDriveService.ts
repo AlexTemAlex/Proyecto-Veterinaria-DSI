@@ -1,260 +1,171 @@
-import { GoogleDriveFile, GoogleDriveFolder } from "types";
+import { GoogleDriveFile, GoogleDriveFolder, Cita } from "types/index";
 
 // Backend API URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api/google-drive";
+const API_BASE_URL = "/api";
 
-/**
- * Make API request
- */
-const apiRequest = async (
+/** Make API request */
+const apiRequest = async <T>(
   endpoint: string,
   options: RequestInit = {}
-): Promise<Response> => {
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-  return response;
-};
+): Promise<T> => {
+  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+    credentials: "include",
+    ...options,
+  });
 
-/**
- * List all folders in Google Drive
- */
-export const listFolders = async (): Promise<GoogleDriveFolder[]> => {
+  let data: any = null;
+
   try {
-    const response = await apiRequest("/folders");
+    data = await res.json();
+  } catch (_) {}
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to list folders");
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Error listing folders:", error);
-    throw error;
+  if (!res.ok) {
+    throw new Error(data?.error || data?.message || "API error");
   }
+
+  return data as T;
+};
+/** ========================
+ * DRIVE
+ * ======================== */
+/** List all folders */
+export const listFolders = async (): Promise<GoogleDriveFolder[]> => {
+  const data = await apiRequest<{ carpetas: GoogleDriveFolder[] }>("/drive/folders");
+  return data.carpetas;
 };
 
-/**
- * List files in a specific folder
- */
+/** List files in a specific folder */
 export const listFilesInFolder = async (
   folderId: string
 ): Promise<GoogleDriveFile[]> => {
-  try {
-    const response = await apiRequest(`/folders/${folderId}/files`);
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to list files");
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Error listing files:", error);
-    throw error;
-  }
+  const data = await apiRequest<{ archivos: GoogleDriveFile[] }>(
+    `/drive/folders/${folderId}/files`
+  );
+  return data.archivos;
 };
 
-/**
- * Create a new folder
- */
-export const createFolder = async (
-  folderName: string,
-  parentFolderId?: string
-): Promise<GoogleDriveFolder> => {
-  try {
-    const response = await apiRequest("/folders", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: folderName,
-        parentFolderId,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to create folder");
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Error creating folder:", error);
-    throw error;
-  }
+/** Create a new folder */
+export const createFolder = async (folderName: string): Promise<GoogleDriveFolder> => {
+  return apiRequest<GoogleDriveFolder>("/drive/folders", {
+    method: "POST",
+    body: new URLSearchParams({ name: folderName }),
+  });
 };
 
-/**
- * Rename a folder
- */
+/** Rename a folder */
 export const renameFolder = async (
   folderId: string,
   newName: string
 ): Promise<GoogleDriveFolder> => {
-  try {
-    const response = await apiRequest(`/folders/${folderId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: newName,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to rename folder");
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Error renaming folder:", error);
-    throw error;
-  }
+  return apiRequest<GoogleDriveFolder>("/drive/folder/rename", {
+    method: "PUT",
+    body: new URLSearchParams({ folder_id: folderId, new_name: newName }),
+  });
 };
 
-/**
- * Delete a folder
- */
+/** Delete a folder */
 export const deleteFolder = async (folderId: string): Promise<void> => {
-  try {
-    const response = await apiRequest(`/folders/${folderId}`, {
-      method: "DELETE",
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to delete folder");
-    }
-  } catch (error) {
-    console.error("Error deleting folder:", error);
-    throw error;
-  }
+  return apiRequest<void>(`/drive/folder?folder_id=${folderId}`, {
+    method: "DELETE",
+  });
 };
 
-/**
- * Upload a file to Google Drive
- */
+/** Upload a file to a folder */
 export const uploadFile = async (
   file: File,
-  folderId?: string
+  folderId: string
 ): Promise<GoogleDriveFile> => {
-  try {
-    const formData = new FormData();
-    formData.append("file", file);
-    if (folderId) {
-      formData.append("folderId", folderId);
-    }
-
-    const response = await fetch(`${API_BASE_URL}/files`, {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to upload file");
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Error uploading file:", error);
-    throw error;
+  const MAX_SIZE = 100 * 1024 * 1024; // 100 MB
+  if (file.size > MAX_SIZE) {
+    throw new Error("El archivo supera el límite de 100 MB");
   }
+
+  // Creamos FormData para enviar archivo y otros datos
+  const formData = new FormData();
+  formData.append("file", file);       // campo que n8n espera: "file"
+  formData.append("folder_id", folderId);
+
+  // Llamamos a la API usando apiRequest
+  // apiRequest detectará que es FormData y no agregará JSON headers
+  return apiRequest<GoogleDriveFile>("/drive/files/upload", {
+    method: "POST",
+    body: formData,
+  });
 };
 
-/**
- * Rename a file
- */
+/** Rename a file */
 export const renameFile = async (
   fileId: string,
   newName: string
 ): Promise<GoogleDriveFile> => {
-  try {
-    const response = await apiRequest(`/files/${fileId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: newName,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to rename file");
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Error renaming file:", error);
-    throw error;
-  }
+  return apiRequest<GoogleDriveFile>("/drive/file/rename", {
+    method: "PUT",
+    body: new URLSearchParams({ file_id: fileId, new_name: newName }),
+  });
 };
 
-/**
- * Delete a file
- */
+/** Delete a file */
 export const deleteFile = async (fileId: string): Promise<void> => {
-  try {
-    const response = await apiRequest(`/files/${fileId}`, {
-      method: "DELETE",
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to delete file");
-    }
-  } catch (error) {
-    console.error("Error deleting file:", error);
-    throw error;
-  }
+  return apiRequest<void>(`/drive/file?file_id=${fileId}`, {
+    method: "DELETE",
+  });
 };
 
-/**
- * Download a file
- */
-export const downloadFile = async (
-  fileId: string,
-  fileName: string
-): Promise<void> => {
+/** Download a file */
+export const downloadFile = async (fileId: string): Promise<void> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/files/${fileId}/download`);
-
+    const response = await fetch(`${API_BASE_URL}/drive/file/download?file_id=${fileId}`);
     if (!response.ok) {
-      throw new Error("Failed to download file");
+      throw new Error("Failed to get download link");
     }
 
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
+    const data = await response.json();
+    const downloadUrl = data.webContentLink;
+    if (!downloadUrl) {
+      throw new Error("Download link not found in response");
+    }
 
-    // Create a temporary link and trigger download
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    // Abrimos el link en una nueva pestaña para disparar la descarga
+    window.open(downloadUrl, "_blank");
   } catch (error) {
     console.error("Error downloading file:", error);
     throw error;
   }
 };
 
-/**
- * Open a file in Google Drive (in a new tab)
- */
+/** Open a file in Google Drive (in a new tab) */
 export const openFileInDrive = (webViewLink: string): void => {
   window.open(webViewLink, "_blank");
 };
 
-/**
- * Format file size
- */
+/** CITAS  */
+export const getCitas = (limit = 50, offset = 0) =>
+  apiRequest<Cita[]>(`/api/citas?limit=${limit}&offset=${offset}`);
+
+export const filterCitas = (fecha?: string, estado?: string) => {
+  const params = new URLSearchParams();
+  if (fecha) params.append("fecha", fecha);
+  if (estado) params.append("estado", estado);
+
+  return apiRequest<Cita[]>(`/api/citas/filtrar?${params.toString()}`);
+};
+
+export const getCita = (id: string) =>
+  apiRequest<Cita>(`/api/citas/${id}`);
+
+export const getCitasHoy = () =>
+  apiRequest<Cita[]>(`/api/citas/hoy`);
+
+/** Chatbot */
+export const sendChatbot = (mensaje: string) =>
+  apiRequest<{ respuesta: string }>("/chatbot", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mensaje }),
+  });
+
+
+/** Format file size */
 export const formatFileSize = (bytes: string | undefined): string => {
   if (!bytes) return "N/A";
   const size = parseInt(bytes);
@@ -265,10 +176,27 @@ export const formatFileSize = (bytes: string | undefined): string => {
   return (size / (1024 * 1024 * 1024)).toFixed(2) + " GB";
 };
 
-/**
- * Format date
- */
-export const formatDate = (dateString: string): string => {
+/** Format date */
+export const formatDate = (dateString?: string): string => {
+  if (!dateString) return "-";
+
   const date = new Date(dateString);
-  return date.toLocaleDateString() + " " + date.toLocaleTimeString();
+
+  if (isNaN(date.getTime())) return "-";
+
+  return (
+    date.toLocaleDateString("es-EC") +
+    " " +
+    date.toLocaleTimeString("es-EC")
+  );
+};
+
+export const checkHealth = async (): Promise<boolean> => {
+  try {
+    const res = await fetch("/api/health");
+    const data = await res.json();
+    return data.status === "OK";
+  } catch {
+    return false;
+  }
 };
