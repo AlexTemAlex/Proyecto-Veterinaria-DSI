@@ -1,0 +1,17 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#0B5ED7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Earpieces -->
+  <circle cx="25" cy="15" r="4"/>
+  <circle cx="75" cy="15" r="4"/>
+  
+  <!-- Tubes from earpieces -->
+  <path d="M 25 19 Q 25 35 40 40"/>
+  <path d="M 75 19 Q 75 35 60 40"/>
+  
+  <!-- Main tube -->
+  <path d="M 40 40 Q 50 50 50 70"/>
+  <path d="M 60 40 Q 50 50 50 70"/>
+  
+  <!-- Diaphragm -->
+  <circle cx="50" cy="85" r="8"/>
+  <circle cx="50" cy="85" r="5" fill="none" stroke="#0B5ED7" stroke-width="1.5"/>
+</svg>

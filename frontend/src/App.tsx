@@ -1,12 +1,19 @@
-//import node module libraries
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+// react-router
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
 
-//import routes files
-import AuthenticationLayout from "layouts/AuthenticationLayout";
+// layouts
 import RootLayout from "layouts/RootLayout";
-import SignIn from "./pages/auth/SignIn";
-import ForgetPassword from "pages/auth/ForgetPassword";
-import SignUp from "./pages/auth/SignUp";
+import AuthenticationLayout from "layouts/AuthenticationLayout";
+import ClienteLayout from "cliente_petsi/clienteLayout";
+
+// páginas cliente
+import HomeCliente from "cliente_petsi/pages/homeCliente";
+
+// páginas dashboard / admin
 import Dashboard from "pages/dashboard/Index";
 import Billing from "pages/dashboard/pages/Billing";
 import Pricing from "pages/dashboard/pages/Pricing";
@@ -16,9 +23,14 @@ import NotFound from "pages/dashboard/pages/NotFound";
 import LayoutVertical from "pages/dashboard/LayoutVertical";
 import Documentation from "pages/dashboard/Documentation";
 import ChangeLog from "pages/dashboard/Changelog";
-import ApiDemo from "./pages/dashboard/pages/ApiDemo";
+import ApiDemo from "pages/dashboard/pages/ApiDemo";
 
-// import bootstrap components
+// auth
+import SignIn from "pages/auth/SignIn";
+import SignUp from "pages/auth/SignUp";
+import ForgetPassword from "pages/auth/ForgetPassword";
+
+// bootstrap components
 import Accordion from "bootstrap-components/Accordions";
 import Alerts from "bootstrap-components/Alerts";
 import Badges from "bootstrap-components/Badges";
@@ -44,116 +56,99 @@ import Toasts from "bootstrap-components/Toasts";
 import Tooltips from "bootstrap-components/Tooltips";
 import Tables from "bootstrap-components/Tables";
 
-const App = () => {
-  const router = createBrowserRouter([
-    {
-      id: "root",
-      path: "/",
-      Component: RootLayout,
-      errorElement: <NotFound />,
-      children: [
-        {
-          id: "dashboard",
-          path: "/",
-          Component: Dashboard,
-        },
-        {
-          id: "pages",
-          path: "/pages",
-          children: [
-            {
-              path: "profile",
-              Component: Profile,
-            },
-            {
-              path: "documentos",
-              Component: Documentos,
-            },
-            {
-              path: "billing",
-              Component: Billing,
-            },
-            {
-              path: "pricing",
-              Component: Pricing,
-            },
-            {
-              path: "api-demo",
-              Component: ApiDemo,
-            },
-          ],
-        },
-        {
-          id: "documentation",
-          path: "/documentation",
-          Component: Documentation,
-        },
-        {
-          id: "changelog",
-          path: "/changelog",
-          Component: ChangeLog,
-        },
-        {
-          id: "layout-vertical",
-          path: "/layout-vertical",
-          Component: LayoutVertical,
-        },
-        {
-          id: "components",
-          path: "/components",
-          children: [
-            { path: "accordions", Component: Accordion },
-            { path: "alerts", Component: Alerts },
-            { path: "badges", Component: Badges },
-            { path: "breadcrumbs", Component: Breadcrumbs },
-            { path: "button-group", Component: ButtonGroup },
-            { path: "buttons", Component: Buttons },
-            { path: "cards", Component: Cards },
-            { path: "carousels", Component: Carousels },
-            { path: "close-button", Component: CloseButtons },
-            { path: "collapse", Component: Collapses },
-            { path: "dropdowns", Component: Dropdowns },
-            { path: "list-group", Component: Listgroups },
-            { path: "modal", Component: Modals },
-            { path: "navbar", Component: Navbars },
-            { path: "navs", Component: Navs },
-            { path: "offcanvas", Component: Offcanvas },
-            { path: "overlays", Component: Overlays },
-            { path: "pagination", Component: Paginations },
-            { path: "popovers", Component: Popovers },
-            { path: "progress", Component: Progress },
-            { path: "spinners", Component: Spinners },
-            { path: "tables", Component: Tables },
-            { path: "toasts", Component: Toasts },
-            { path: "tooltips", Component: Tooltips },
-          ],
-        },
-      ],
-    },
-    {
-      id: "auth",
-      path: "/auth",
-      Component: AuthenticationLayout,
-      children: [
-        {
-          id: "sign-in",
-          path: "sign-in",
-          Component: SignIn,
-        },
-        {
-          id: "sign-up",
-          path: "sign-up",
-          Component: SignUp,
-        },
-        {
-          id: "forget-password",
-          path: "forget-password",
-          Component: ForgetPassword,
-        },
-      ],
-    },
-  ]);
-  return <RouterProvider router={router} />;
-};
+const router = createBrowserRouter([
+  // 🌐 CLIENTE (PÚBLICO – SIN SIDEBAR)
+  {
+    path: "/cliente",
+    Component: ClienteLayout,
+    children: [
+      {
+        index: true,
+        Component: HomeCliente,
+      },
+    ],
+  },
 
-export default App;
+  // 🔁 REDIRECCIÓN AUTOMÁTICA
+  {
+    path: "/",
+    element: <Navigate to="/cliente" replace />,
+  },
+
+  // 🧑‍💼 DASHBOARD / ADMIN (CON SIDEBAR)
+  {
+    path: "/dashboard",
+    Component: RootLayout,
+    errorElement: <NotFound />,
+    children: [
+      {
+        index: true,
+        Component: Dashboard,
+      },
+
+      // 📄 PÁGINAS
+      { path: "profile", Component: Profile },
+      { path: "documentos", Component: Documentos },
+      { path: "billing", Component: Billing },
+      { path: "pricing", Component: Pricing },
+      { path: "api-demo", Component: ApiDemo },
+
+      // 📘 DOCUMENTACIÓN
+      { path: "documentation", Component: Documentation },
+      { path: "changelog", Component: ChangeLog },
+      { path: "layout-vertical", Component: LayoutVertical },
+
+      // 🧩 COMPONENTES
+      {
+        path: "components",
+        children: [
+          { path: "accordions", Component: Accordion },
+          { path: "alerts", Component: Alerts },
+          { path: "badges", Component: Badges },
+          { path: "breadcrumbs", Component: Breadcrumbs },
+          { path: "button-group", Component: ButtonGroup },
+          { path: "buttons", Component: Buttons },
+          { path: "cards", Component: Cards },
+          { path: "carousels", Component: Carousels },
+          { path: "close-button", Component: CloseButtons },
+          { path: "collapse", Component: Collapses },
+          { path: "dropdowns", Component: Dropdowns },
+          { path: "list-group", Component: Listgroups },
+          { path: "modal", Component: Modals },
+          { path: "navbar", Component: Navbars },
+          { path: "navs", Component: Navs },
+          { path: "offcanvas", Component: Offcanvas },
+          { path: "overlays", Component: Overlays },
+          { path: "pagination", Component: Paginations },
+          { path: "popovers", Component: Popovers },
+          { path: "progress", Component: Progress },
+          { path: "spinners", Component: Spinners },
+          { path: "tables", Component: Tables },
+          { path: "toasts", Component: Toasts },
+          { path: "tooltips", Component: Tooltips },
+        ],
+      },
+    ],
+  },
+
+  // 🔐 AUTENTICACIÓN
+  {
+    path: "/auth",
+    Component: AuthenticationLayout,
+    children: [
+      { path: "sign-in", Component: SignIn },
+      { path: "sign-up", Component: SignUp },
+      { path: "forget-password", Component: ForgetPassword },
+    ],
+  },
+
+  // ❌ 404 GLOBAL
+  {
+    path: "*",
+    Component: NotFound,
+  },
+]);
+
+export default function App() {
+  return <RouterProvider router={router} />;
+}
