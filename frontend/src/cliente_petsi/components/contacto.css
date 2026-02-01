@@ -1,0 +1,16 @@
+.contacto {
+  background-color: var(--light-gray);
+  text-align: center;
+}
+
+.contacto-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.contacto h3 {
+  color: var(--primary-blue);
+  margin-bottom: 10px;
+}

@@ -1,0 +1,20 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#0B5ED7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Syringe body -->
+  <rect x="20" y="35" width="50" height="12" rx="2"/>
+  
+  <!-- Plunger -->
+  <rect x="12" y="37" width="10" height="8" rx="1" fill="#0B5ED7"/>
+  <circle cx="17" cy="41" r="2" fill="#ffffff"/>
+  
+  <!-- Needle -->
+  <line x1="70" y1="35" x2="85" y2="20"/>
+  <line x1="70" y1="47" x2="85" y2="32"/>
+  <polygon points="85,20 85,32 88,26" fill="#0B5ED7"/>
+  
+  <!-- Measurement marks -->
+  <line x1="25" y1="32" x2="25" y2="30"/>
+  <line x1="35" y1="32" x2="35" y2="30"/>
+  <line x1="45" y1="32" x2="45" y2="30"/>
+  <line x1="55" y1="32" x2="55" y2="30"/>
+  <line x1="65" y1="32" x2="65" y2="30"/>
+</svg>

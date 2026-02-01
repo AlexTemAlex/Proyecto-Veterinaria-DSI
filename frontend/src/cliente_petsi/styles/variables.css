@@ -1,0 +1,20 @@
+:root {
+  /* Colores principales */
+  --primary-blue: #0B5ED7;
+  --secondary-green: #4CAF50;
+
+  /* Fondos suaves (hero, secciones) */
+  --light-blue: #EAF1FB;
+  --light-green: #EAF6EE;
+
+  /* Texto */
+  --text-dark: #1E1E1E;
+  --text-gray: #6C757D;
+
+  /* Básicos */
+  --white: #FFFFFF;
+  --border-radius: 12px;
+
+  /* Tipografía */
+  --font-main: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
