@@ -1,10 +1,10 @@
 import { Outlet } from "react-router-dom";
-import './styles/global.css';
+import '../../components/styles/global.css';
 
 // componentes fijos del cliente
-import NavbarCliente from "./components/navbar";
-import Footer from "./components/footer";
-import WhatsAppButton from "./components/whatsappButton";
+import NavbarCliente from "../../components/cliente_petsi/navbar_home";
+import Footer from "../../components/cliente_petsi/footer";
+import WhatsAppButton from "../../components/cliente_petsi/whatsappButton";
 
 export default function ClienteLayout() {
   return (

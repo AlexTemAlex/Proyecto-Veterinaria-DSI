@@ -17,7 +17,7 @@ app.add_middleware(
     allow_credentials=True,
 )
 
-app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
 app.include_router(n8n.router, prefix="/api", tags=["n8n"])
 
 @app.get("/api/health")
