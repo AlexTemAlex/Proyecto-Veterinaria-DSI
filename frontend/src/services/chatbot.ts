@@ -1,7 +1,5 @@
-import { Producto } from "types/index";
-
-// Backend API URL
 const API_BASE_URL = "/api";
+
 
 /** Make API request */
 const apiRequest = async <T>(
@@ -26,11 +24,11 @@ const apiRequest = async <T>(
   return data as T;
 };
 
-/** ========================
- * PRODUCTOS
- * ======================== */
+/** Chatbot */
+export const sendChatbot = (mensaje: string) =>
+  apiRequest<{ respuesta: string }>("/chatbot", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mensaje }),
+  });
 
-/** Get all products (from n8n backend) */
-export const getInventario = async (): Promise<Producto[]> => {
-  return apiRequest<Producto[]>(`/drive/products`);
-};

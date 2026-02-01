@@ -17,9 +17,8 @@ import Documentos from "pages/dashboard/pages/Documentos";
 import Inventario from "pages/dashboard/pages/Inventario";
 import NotFound from "pages/dashboard/pages/NotFound";
 
-import SignIn from "pages/auth/SignIn";
+import LoginPage from "pages/auth/LoginPage";
 import SignUp from "pages/auth/SignUp";
-import ForgetPassword from "pages/auth/ForgetPassword";
 
 import { NotificationProvider } from "context/NotificationContext";
 
@@ -41,9 +40,7 @@ const router = createBrowserRouter([
     path: "/auth",
     Component: AuthenticationLayout,
     children: [
-      { path: "sign-in", Component: SignIn },
-      { path: "sign-up", Component: SignUp },
-      { path: "forget-password", Component: ForgetPassword },
+      { path: "sign-in", Component: LoginPage }
     ],
   },
 
@@ -59,6 +56,7 @@ const router = createBrowserRouter([
           { path: "inventario", Component: Inventario },
           { path: "documentos", Component: Documentos },
           { path: "citas", Component: Citas },
+          { path: "sign-up", Component: SignUp },
         ],
       },
     ],

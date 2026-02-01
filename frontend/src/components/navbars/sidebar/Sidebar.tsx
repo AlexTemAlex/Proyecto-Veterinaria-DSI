@@ -16,7 +16,7 @@ interface SidebarProps {
   toggleMenu: () => void;  // función para abrir/cerrar sidebar
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ showMenu, toggleMenu }) => {
+const Sidebar: React.FC<SidebarProps> = ({ toggleMenu }) => {
   const location = useLocation();
 
   const generateLink = (item: any) => (
@@ -46,10 +46,20 @@ const Sidebar: React.FC<SidebarProps> = ({ showMenu, toggleMenu }) => {
         }}
       >
         {/* Logo */}
-        <div className="nav-scroller px-3 py-3">
-          <Link to="/" className="navbar-brand">
-            <Image src="/images/brand/logo/logo.svg" alt="Logo" fluid />
+        <div className="px-10 py-3">
+          <Link to="/" className="d-flex align-items-center"
+          >
+            <Image
+              src="/images/brand/logo/brand-logo.png"
+              alt="Logo"
+              fluid
+              style={{
+                maxWidth: "100px",
+                borderRadius: "12px",
+              }}
+            />
           </Link>
+
         </div>
 
         {/* Dashboard Menu */}

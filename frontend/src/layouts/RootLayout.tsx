@@ -22,19 +22,7 @@ const RootLayout = () => {
         }}
       >
         {/* Sidebar */}
-        <div
-          className="navbar-vertical navbar"
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            height: "100vh",
-            width: "250px",
-            backgroundColor: "#131e29", // color del sidebar
-            overflowY: "auto",
-            zIndex: 1000,
-          }}
-        >
+        <div className="navbar-vertical navbar">
           <Sidebar showMenu={showMenu} toggleMenu={ToggleMenu} />
         </div>
 
