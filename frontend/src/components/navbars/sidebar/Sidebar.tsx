@@ -90,13 +90,13 @@ const Sidebar: React.FC<SidebarProps> = ({ showMenu, toggleMenu }) => {
           })}
         </Accordion>
 
-        {/* Separador y Cerrar sesión */}
-        <div className="border-top my-3 mx-3"></div>
-        <ul className="navbar-nav flex-column px-3">
+        {/* Cerrar sesión */}
+        <ul className="navbar-nav flex-column px-2 pb-4">
           <li className="nav-item">
             <Link
               to="/auth/sign-in"
               className="nav-link text-danger"
+              style={{ paddingLeft: "1rem", paddingRight: "0.5rem" }}
               onClick={() => {
                 localStorage.clear();
                 sessionStorage.clear();

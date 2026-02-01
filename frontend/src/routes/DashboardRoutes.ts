@@ -7,9 +7,6 @@ export const DashboardMenu: DashboardMenuProps[] = [
   {id: uuid(), title: "Dashboard", icon: "home", link: `${BASE}`, 
   },
   {
-    id: uuid(), title: "Pagina PETSI", grouptitle: true, 
-  },
-  {
     id: uuid(), title: "Inventario", icon: "package", link: `${BASE}/inventario`,
   },
   {
