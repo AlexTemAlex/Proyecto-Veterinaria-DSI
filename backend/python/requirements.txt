@@ -1,0 +1,12 @@
+python-jose
+python-multipart
+python-dotenv
+fastapi
+uvicorn
+requests
+httpx
+python-multipart
+sqlalchemy
+dotenv
+psycopg2-binary
+passlib[argon2]

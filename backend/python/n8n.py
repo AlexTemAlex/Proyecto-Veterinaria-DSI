@@ -1,5 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query, Cookie, Form, UploadFile, File
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import APIRouter, HTTPException, Query, Cookie, Form, UploadFile, File
 from fastapi.responses import JSONResponse
 
 from typing import Optional
@@ -8,18 +7,7 @@ from pydantic import BaseModel
 import uuid
 import httpx
 
-app = FastAPI()
-
-# ========================
-# CORS
-# ========================
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # en prod pon tu dominio
-    allow_methods=["*"],
-    allow_headers=["*"],
-    allow_credentials=True,
-)
+router = APIRouter()
 
 # ========================
 # CONFIG
@@ -34,21 +22,15 @@ class ChatbotRequest(BaseModel):
     tipo_mensaje: Optional[str] = "web"
     fecha: Optional[str] = None
 
-
 sesiones = {}
 SESSION_TTL = timedelta(minutes=30)
-
-@app.get("/api/health")
-async def health_check():
-    return {"status": "OK", "message": "Veterinaria Backend API is running"}
-
 # =================================
 # DRIVE
 # =================================
 # ========================
 # GET: Lista de carpetas
 # ========================
-@app.get("/api/drive/folders")
+@router.get("/drive/folders")
 async def get_folders():
     try:
         async with httpx.AsyncClient(timeout=3) as client:
@@ -61,7 +43,7 @@ async def get_folders():
 # ========================
 # POST: Crear carpeta
 # ========================
-@app.post("/api/drive/folders")
+@router.post("/drive/folders")
 async def create_folder(name: str = Form(...)):
     try:
         async with httpx.AsyncClient(timeout=5) as client:
@@ -77,7 +59,7 @@ async def create_folder(name: str = Form(...)):
 # ========================
 # PUT: Renombrar carpeta
 # =======================
-@app.put("/api/drive/folder/rename")
+@router.put("/drive/folder/rename")
 async def rename_folder(folder_id: str = Form(...), new_name: str = Form(...)):
     try:
         async with httpx.AsyncClient(timeout=5) as client:
@@ -93,7 +75,7 @@ async def rename_folder(folder_id: str = Form(...), new_name: str = Form(...)):
 # ========================
 # DELETE: Eliminar carpeta
 # =======================
-@app.delete("/api/drive/folder")
+@router.delete("/drive/folder")
 async def delete_folder(folder_id: str):
     try:
         async with httpx.AsyncClient(timeout=5) as client:
@@ -109,7 +91,7 @@ async def delete_folder(folder_id: str):
 # ====================
 # GET: Listar archivos por carpeta
 # ====================
-@app.get("/api/drive/folders/{folder_id}/files")
+@router.get("/drive/folders/{folder_id}/files")
 async def get_archivos(folder_id: str):
     try:
         async with httpx.AsyncClient(timeout=5) as client:
@@ -125,7 +107,7 @@ async def get_archivos(folder_id: str):
 # ========================
 # POST: Subir archivo limite 100MB
 # =======================
-@app.post("/api/drive/files/upload")
+@router.post("/drive/files/upload")
 async def upload_file(
     folder_id: str = Form(...),
     file: UploadFile = File(...),
@@ -159,7 +141,7 @@ async def upload_file(
 # ========================
 # PUT: Renombrar archivo
 # =======================
-@app.put("/api/drive/file/rename")
+@router.put("/drive/file/rename")
 async def rename_file(file_id: str = Form(...), new_name: str = Form(...)):
     try:
         async with httpx.AsyncClient(timeout=5) as client:
@@ -175,7 +157,7 @@ async def rename_file(file_id: str = Form(...), new_name: str = Form(...)):
 # ========================
 # DELETE: Eliminar archivo
 # =======================
-@app.delete("/api/drive/file")
+@router.delete("/drive/file")
 async def delete_file(file_id: str):
     try:
         async with httpx.AsyncClient(timeout=10) as client:
@@ -191,7 +173,7 @@ async def delete_file(file_id: str):
 # ========================
 # GET: Obtener link de descarga - archivo
 # =======================
-@app.get("/api/drive/file/download")
+@router.get("/drive/file/download")
 async def get_download_link(file_id: str):
     try:
         async with httpx.AsyncClient(timeout=10) as client:
@@ -207,7 +189,7 @@ async def get_download_link(file_id: str):
 # ========================
 # PRODUCTOS
 # ========================
-@app.get("/api/drive/products")
+@router.get("/drive/products")
 async def get_productos(file_id: str | None = None):
     try:
         params = {}
@@ -223,11 +205,10 @@ async def get_productos(file_id: str | None = None):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 # ====================
 # GET CITAS: 50 citas del total de citas - usando paginación
 # ====================
-@app.get("/api/citas")
+@router.get("/citas")
 async def get_all_citas(
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
@@ -246,7 +227,7 @@ async def get_all_citas(
 # ====================
 # GET: Filtrar citas por fecha y/o estado
 # ====================
-@app.get("/api/citas/filtrar")
+@router.get("/citas/filtrar")
 async def filter_citas(
     fecha: Optional[str] = None,
     estado: Optional[str] = None,
@@ -268,7 +249,7 @@ async def filter_citas(
 # ====================
 # GET: Detalle de una cita específica
 # ====================
-@app.get("/api/citas/{cita_id}")
+@router.get("/citas/{cita_id}")
 async def get_cita(cita_id: str):
     try:
         async with httpx.AsyncClient(timeout=5) as client:
@@ -281,7 +262,7 @@ async def get_cita(cita_id: str):
 # ====================
 # GET: Citas del día de hoy
 # ====================
-@app.get("/api/citas/hoy")
+@router.get("/citas/hoy")
 async def get_citas_hoy():
     try:
         hoy = date.today().isoformat()
@@ -302,7 +283,7 @@ async def get_citas_hoy():
 # ========================
 # CHATBOT
 # ========================
-@app.post("/chatbot")
+@router.post("/chatbot")
 async def post_chatbot(
     request: ChatbotRequest,
     id_session: Optional[str] = Cookie(None),
