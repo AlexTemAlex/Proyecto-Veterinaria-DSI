@@ -6,13 +6,16 @@ import {
   Card,
   Table,
   Badge,
+  Button,
   Form,
   Spinner,
-  Pagination,
+  Modal,
 } from "react-bootstrap";
+import { useNotifications } from "context/NotificationContext";
 
 //const API_BASE_URL = "http://localhost:8000/api";
 const API_BASE_URL = "/api";
+
 // Interfaces
 export interface CitaData {
   id: string;                // cita_id
@@ -37,12 +40,16 @@ const ITEMS_PER_PAGE = 5;
 
 const getEstadoBadge = (estado: string) => {
   switch (estado.toLowerCase()) {
-    case "activo":
+    case "completado":
       return "success";
+    case "en espera":
+      return "warning";
     case "cancelado":
       return "danger";
-    case "reprogramado":
-      return "warning";
+    case "activo":
+      return "success";
+    case "modificado":
+      return "info";
     default:
       return "secondary";
   }
@@ -58,26 +65,12 @@ const formatFechaSidebar = (fecha: Date): string => {
   })}`;
 };
 
-const formatTelefono = (tel: string): string => {
-  if (!tel) return "";
-  const trimmed = tel.trim();
-  if (trimmed.startsWith("+")) return trimmed;
-  if (!trimmed.startsWith("0")) return "0" + trimmed;
-  return trimmed;
-};
-
-const todayStr = (): string => {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-};
-
 const Citas = () => {
+  const { addNotification } = useNotifications();
+
+  // Data state
   const [citas, setCitas] = useState<CitaData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Calendar state
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -98,7 +91,6 @@ const [mostrarMas, setMostrarMas] = useState(false);
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      setError(null);
       try {
         const res = await fetch(`${API_BASE_URL}/drive/citas`);
         if (!res.ok) throw new Error("Error al cargar citas");
@@ -180,24 +172,23 @@ const [mostrarMas, setMostrarMas] = useState(false);
     setPaginaCitas(1);
   };
 
-  // Filtered data
-  const citasFiltradas = useMemo(() => {
+  // Filter citas by current month
+  const citasDelMes = useMemo(() => {
     return citas.filter((c) => {
-      if (fechaDesde && c.fechaCita < fechaDesde) return false;
-      if (fechaHasta && c.fechaCita > fechaHasta) return false;
-      if (filtroTipo && c.tipoCita !== filtroTipo) return false;
-      if (filtroEstado && c.estado !== filtroEstado) return false;
-      return true;
+      const f = new Date(c.fecha);
+      return f.getMonth() === mesActual && f.getFullYear() === yearActual;
     });
-  }, [citas, fechaDesde, fechaHasta, filtroTipo, filtroEstado]);
+  }, [citas, mesActual, yearActual]);
 
-  // Pagination
-  const totalPages = Math.max(1, Math.ceil(citasFiltradas.length / ITEMS_PER_PAGE));
+  // Tipos de cita disponibles
+  const tiposCita = useMemo(() => {
+    return [...new Set(citasDelMes.map((c) => c.tipoCita))];
+  }, [citasDelMes]);
 
-  const citasPaginadas = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return citasFiltradas.slice(start, start + ITEMS_PER_PAGE);
-  }, [citasFiltradas, currentPage]);
+  // Estados disponibles
+  const estadosCita = useMemo(() => {
+    return [...new Set(citasDelMes.map((c) => c.estado))];
+  }, [citasDelMes]);
 
   // Filtered citas
   const citasFiltradas = useMemo(() => {
@@ -224,9 +215,12 @@ const [mostrarMas, setMostrarMas] = useState(false);
   //   });
   // }, [eventos, mesActual, yearActual, filtroFechaEvento, filtroEstadoEvento]);
 
-  const renderPagination = () => {
-    const items = [];
-    const maxVisible = 4;
+  // Pagination
+  const totalPagesCitas = Math.max(1, Math.ceil(citasFiltradas.length / ITEMS_PER_PAGE));
+  const citasPaginadas = citasFiltradas.slice(
+    (paginaCitas - 1) * ITEMS_PER_PAGE,
+    paginaCitas * ITEMS_PER_PAGE
+  );
 
   // Próximas actividades (sidebar)
   const proximasActividades = useMemo(() => {
@@ -298,6 +292,8 @@ const [mostrarMas, setMostrarMas] = useState(false);
 
   return (
     <Container fluid className="p-6">
+      <h2 className="fw-bold mb-4">Calendario de Citas</h2>
+
       <Row>
         {/* Sidebar */}
         <Col lg={3} className="mb-4">
@@ -432,43 +428,44 @@ const [mostrarMas, setMostrarMas] = useState(false);
                 />
                 <Form.Select
                   size="sm"
-                  value={filtroTipo}
-                  onChange={(e) => setFiltroTipo(e.target.value)}
+                  style={{ width: "auto" }}
+                  value={filtroTipoCita}
+                  onChange={(e) => {
+                    setFiltroTipoCita(e.target.value);
+                    setPaginaCitas(1);
+                  }}
                 >
-                  <option value="">Todos</option>
-                  {tiposDisponibles.map((t) => (
+                  <option value="">Filtrar Tipo De Cita</option>
+                  {tiposCita.map((t) => (
                     <option key={t} value={t}>{t}</option>
                   ))}
                 </Form.Select>
-              </Form.Group>
-            </Col>
-            <Col xs={12} md={3}>
-              <Form.Group>
-                <Form.Label className="small text-muted mb-1">Estado</Form.Label>
                 <Form.Select
                   size="sm"
-                  value={filtroEstado}
-                  onChange={(e) => setFiltroEstado(e.target.value)}
+                  style={{ width: "auto" }}
+                  value={filtroEstadoCita}
+                  onChange={(e) => {
+                    setFiltroEstadoCita(e.target.value);
+                    setPaginaCitas(1);
+                  }}
                 >
-                  <option value="">Todos</option>
-                  {estadosDisponibles.map((e) => (
+                  <option value="">Filtrar Estado</option>
+                  {estadosCita.map((e) => (
                     <option key={e} value={e}>{e}</option>
                   ))}
                 </Form.Select>
-              </Form.Group>
-            </Col>
-          </Row>
-        </Card.Body>
-      </Card>
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="text-danger"
+                  onClick={resetCitaFilters}
+                >
+                  <i className="fe fe-refresh-cw me-1"></i>
+                  Reiniciar Filtro
+                </Button>
+              </div>
 
-      {/* Table */}
-      <Card className="border-0 shadow-sm">
-        <Card.Body className="p-4">
-          {error ? (
-            <div className="text-center py-5 text-danger">{error}</div>
-          ) : (
-            <>
-              <Table hover responsive className="text-nowrap">
+              <Table responsive className="text-nowrap">
                 <thead className="table-light">
                   <tr>
                     <th>ID</th>
@@ -481,12 +478,17 @@ const [mostrarMas, setMostrarMas] = useState(false);
                   </tr>
                 </thead>
                 <tbody>
-                  {citasPaginadas.length > 0 ? (
-                    citasPaginadas.map((cita, index) => (
-                      <tr key={index}>
+                  {citasPaginadas.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="text-center text-muted py-4">
+                        No hay citas para este mes
+                      </td>
+                    </tr>
+                  ) : (
+                    citasPaginadas.map((cita) => (
+                      <tr key={cita.id}>
                         <td>{cita.id}</td>
-                        <td>{cita.cedula}</td>
-                        <td>{cita.mascota}</td>
+                        <td>{cita.paciente}</td>
                         <td>{cita.dueno}</td>
                         <td>
                           {new Date(cita.fecha).toLocaleDateString("es", {
@@ -497,7 +499,6 @@ const [mostrarMas, setMostrarMas] = useState(false);
                         </td>
                         <td>{cita.horaIngreso}</td>
                         <td>{cita.tipoCita}</td>
-                        <td>{formatTelefono(cita.telefono)}</td>
                         <td>
                           <Badge pill bg={getEstadoBadge(cita.estado)} className="px-3 py-2">
                             {cita.estado}
