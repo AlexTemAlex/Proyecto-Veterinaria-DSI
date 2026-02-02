@@ -36,7 +36,7 @@ const MESES = [
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
 ];
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 10;
 
 const getEstadoBadge = (estado: string) => {
   switch (estado.toLowerCase()) {
@@ -175,8 +175,12 @@ const [mostrarMas, setMostrarMas] = useState(false);
   // Filter citas by current month
   const citasDelMes = useMemo(() => {
     return citas.filter((c) => {
-      const f = new Date(c.fecha);
-      return f.getMonth() === mesActual && f.getFullYear() === yearActual;
+      // fecha viene en formato "dd/mm/yyyy"
+      const parts = c.fecha.split("/");
+      if (parts.length !== 3) return false;
+      const month = parseInt(parts[1], 10) - 1; // 0-indexed
+      const year = parseInt(parts[2], 10);
+      return month === mesActual && year === yearActual;
     });
   }, [citas, mesActual, yearActual]);
 
