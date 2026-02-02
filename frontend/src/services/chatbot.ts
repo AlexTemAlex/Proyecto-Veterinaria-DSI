@@ -1,34 +1,31 @@
 //const API_BASE_URL = "http://localhost:8000/api";
 const API_BASE_URL = "/api";
 
-/** Make API request */
-const apiRequest = async <T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<T> => {
-  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
-    credentials: "include",
-    ...options,
-  });
+interface ChatbotResponse {
+  output?: string;
+  message?: string;
+}
 
-  let data: any = null;
-
-  try {
-    data = await res.json();
-  } catch (_) {}
-
-  if (!res.ok) {
-    throw new Error(data?.error || data?.message || "API error");
+export const sendChatbot = async (
+  payload: {
+    user_id: string;
+    type_message: string;
+    text_message: string;
+    date_time: string;
   }
-
-  return data as T;
-};
-
-/** Chatbot */
-export const sendChatbot = (mensaje: string) =>
-  apiRequest<{ respuesta: string }>("/chatbot", {
+): Promise<ChatbotResponse> => {
+  const res = await fetch(`${API_BASE_URL}/web/chatbot`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ mensaje }),
+    credentials: "include",
+    body: JSON.stringify(payload),
   });
 
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.error || "API error");
+  }
+
+  return data;
+};

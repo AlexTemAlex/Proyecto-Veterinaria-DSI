@@ -1,6 +1,7 @@
-import { useState } from 'react';
 import './whatsappButton.css';
 import whatsappLogo from '../../assets/fonts/feather-icons/icons/whatsapp-logo.svg';
+import { sendChatbot } from "../../services/chatbot"; // ajusta ruta
+import { useState, useRef, useEffect } from 'react';
 
 interface Message {
   id: number;
@@ -10,6 +11,7 @@ interface Message {
 }
 
 export default function WhatsAppButton() {
+
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -23,8 +25,7 @@ export default function WhatsAppButton() {
 
   const [mode, setMode] = useState<'menu' | 'preguntas'>('menu');
 
-  const N8N_WEBHOOK_URL = 'https://tu-n8n-instance.com/webhook/petsi-chat'; // TODO: reemplazar con URL real
-
+  
   const addBotMessage = (text: string) => {
     setMessages(prev => [...prev, {
       id: prev.length + 1,
@@ -70,20 +71,69 @@ export default function WhatsAppButton() {
     }, 400);
   };
 
+  const generateSessionId = () => crypto.randomUUID();
+  const [sessionId] = useState(() => generateSessionId());
   const sendToN8n = async (text: string) => {
-    addUserMessage(text);
-    try {
-      const res = await fetch(N8N_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text })
-      });
-      const data = await res.json();
-      addBotMessage(data.reply || data.message || 'Gracias por tu mensaje, te responderemos pronto.');
-    } catch {
-      addBotMessage('Lo siento, no pude procesar tu mensaje. Intenta de nuevo más tarde.');
-    }
+  // Agregar mensaje del usuario
+  setMessages(prev => {
+    const newUserMsg = {
+      id: prev.length + 1,
+      text,
+      sender: "user" as const,
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    };
+
+    // Crear mensaje temporal del bot inmediatamente
+    const processingMsg = {
+      id: prev.length + 2,
+      text: "⌛ Procesando tu mensaje...",
+      sender: "bot" as const,
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    };
+
+    return [...prev, newUserMsg, processingMsg];
+  });
+
+  // Guardamos el id del mensaje temporal (el último)
+  const processingId = messages.length + 2;
+
+  try {
+    const data = await sendChatbot({
+      user_id: sessionId,
+      type_message: "web",
+      text_message: text,
+      date_time: new Date().toISOString(),
+    });
+
+    const rawText = data.message || data.output || "Gracias por tu mensaje, te responderemos pronto.";
+
+    // Formatear saltos de línea y <br />
+    const formattedText = rawText.split("\n").join("<br />");
+
+    // Reemplazar el mensaje temporal con la respuesta real del bot
+    setMessages(prev =>
+      prev.map(msg =>
+        msg.id === processingId ? { ...msg, text: formattedText } : msg
+      )
+    );
+  } catch {
+    setMessages(prev =>
+      prev.map(msg =>
+        msg.id === processingId
+          ? { ...msg, text: "❌ Lo siento, no pude procesar tu mensaje." }
+          : msg
+      )
+    );
+  }
+};
+
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
@@ -134,13 +184,22 @@ export default function WhatsAppButton() {
                     >
                       📲 Abrir chat de WhatsApp
                     </a>
+                  ) : msg.sender === 'bot' ? (
+                    // Renderiza HTML del bot (para saltos de línea o <br />)
+                    <div
+                      dangerouslySetInnerHTML={{ __html: msg.text }}
+                    />
                   ) : (
+                    // Mensajes del usuario
                     <p>{msg.text}</p>
                   )}
                   <span className="timestamp">{msg.timestamp}</span>
                 </div>
+
               </div>
             ))}
+            {/* Elemento invisible para hacer scroll */}
+            <div ref={messagesEndRef} />
           </div>
 
           {mode === 'menu' && (

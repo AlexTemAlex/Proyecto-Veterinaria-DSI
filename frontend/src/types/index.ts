@@ -38,7 +38,3 @@ export interface GoogleAuthTokens {
   token_type: string;
   expiry_date?: number;
 }
-
-export interface Cita {
-  
-}

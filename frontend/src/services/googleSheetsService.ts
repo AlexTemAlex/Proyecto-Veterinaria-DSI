@@ -29,7 +29,6 @@ const apiRequest = async <T>(
 /** ========================
  * PRODUCTOS
  * ======================== */
-
 /** Get all products (from n8n backend) */
 export const getInventario = async (): Promise<Producto[]> => {
   return apiRequest<Producto[]>(`/drive/products`);

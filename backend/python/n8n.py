@@ -4,7 +4,6 @@ from fastapi.responses import JSONResponse
 from typing import Optional
 from datetime import date, datetime, timedelta
 from pydantic import BaseModel
-import uuid
 import httpx
 
 router = APIRouter()
@@ -18,9 +17,10 @@ N8N_BASE_URL = "https://n8n.petsi-dsi.website/webhook"
 # MODELS
 # ========================
 class ChatbotRequest(BaseModel):
-    mensaje: str
-    tipo_mensaje: Optional[str] = "web"
-    fecha: Optional[str] = None
+    user_id: str
+    type_message: str
+    text_message: str
+    date_time: Optional[str] = None
 
 sesiones = {}
 SESSION_TTL = timedelta(minutes=30)
@@ -212,22 +212,16 @@ async def get_productos():
 # ====================
 # GET CITAS: 50 citas del total de citas - usando paginación
 # ====================
-@router.get("/citas")
-async def get_all_citas(
-    limit: int = Query(50, ge=1, le=500),
-    offset: int = Query(0, ge=0),
-):
+@router.get("/drive/citas")
+async def get_productos():
     try:
-        async with httpx.AsyncClient(timeout=5) as client:
-            r = await client.get(
-                f"{N8N_BASE_URL}/api/citas",
-                params={"limit": limit, "offset": offset},
-            )
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.get(f"{N8N_BASE_URL}/api/drive/citas")
             r.raise_for_status()
             return r.json()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
+    
 # ====================
 # GET: Filtrar citas por fecha y/o estado
 # ====================
@@ -288,44 +282,18 @@ async def get_citas_hoy():
 # CHATBOT
 # ========================
 @router.post("/web/chatbot")
-async def post_chatbot(
-    request: ChatbotRequest,
-    id_session: Optional[str] = Cookie(None),
-):
+async def post_chatbot(request: ChatbotRequest):
     try:
-        if not id_session:
-            id_session = str(uuid.uuid4())
-
-        sesiones[id_session] = {
-            "fecha_creacion": datetime.utcnow(),
-            "expira": datetime.utcnow() + SESSION_TTL,
-        }
-
-        ahora = datetime.utcnow()
-        for sid in list(sesiones.keys()):
-            if sesiones[sid]["expira"] < ahora:
-                del sesiones[sid]
-
         payload = {
-            "mensaje": request.mensaje,
-            "tipo_mensaje": request.tipo_mensaje,
-            "fecha": request.fecha or datetime.utcnow().isoformat(),
-            "id_session": id_session,
+            "user_id": request.user_id,
+            "text_message": request.text_message,
+            "type_message": request.type_message,
+            "date_time": request.date_time or datetime.utcnow().isoformat(),
         }
-
-        async with httpx.AsyncClient(timeout=10) as client:
-            r = await client.post(f"{N8N_BASE_URL}/chatbot", json=payload)
+        async with httpx.AsyncClient(timeout=30) as client:
+            r = await client.post(f"{N8N_BASE_URL}/api/web/chatbot", json=payload, headers={"Content-Type": "application/json"})
             r.raise_for_status()
-
-        resp = JSONResponse(content=r.json())
-        resp.set_cookie(
-            key="id_session",
-            value=id_session,
-            max_age=1800,
-            httponly=True,
-            samesite="lax",
-        )
-        return resp
+        return r.json()
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

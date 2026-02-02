@@ -1,4 +1,4 @@
-import { GoogleDriveFile, GoogleDriveFolder, Cita } from "types/index";
+import { GoogleDriveFile, GoogleDriveFolder } from "types/index";
 
 // Backend API URL
 //const API_BASE_URL = "http://localhost:8000/api";
@@ -137,24 +137,6 @@ export const downloadFile = async (fileId: string): Promise<void> => {
 export const openFileInDrive = (webViewLink: string): void => {
   window.open(webViewLink, "_blank");
 };
-
-/** CITAS  */
-export const getCitas = (limit = 50, offset = 0) =>
-  apiRequest<Cita[]>(`/api/citas?limit=${limit}&offset=${offset}`);
-
-export const filterCitas = (fecha?: string, estado?: string) => {
-  const params = new URLSearchParams();
-  if (fecha) params.append("fecha", fecha);
-  if (estado) params.append("estado", estado);
-
-  return apiRequest<Cita[]>(`/api/citas/filtrar?${params.toString()}`);
-};
-
-export const getCita = (id: string) =>
-  apiRequest<Cita>(`/api/citas/${id}`);
-
-export const getCitasHoy = () =>
-  apiRequest<Cita[]>(`/api/citas/hoy`);
 
 /** Format file size */
 export const formatFileSize = (bytes: string | undefined): string => {
