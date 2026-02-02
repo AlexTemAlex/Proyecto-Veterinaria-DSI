@@ -47,7 +47,7 @@ const InventarioTable = ({ searchTerm }: InventarioTableProps) => {
           categoria: p["Categoría"],
           subcategoria: p["Subcategoría"],
           presentacion: p["Presentación"],
-          stock: Number(p["Stock Máximo"] ?? 0),
+          stock: Number(p["Stock"] ?? 0),
         }));
 
         setProductos(data);

@@ -44,7 +44,7 @@ export default function WhatsAppButton() {
     }]);
   };
 
-  const WHATSAPP_NUMBER = '593995521989'; // TODO: reemplazar con número real
+  const WHATSAPP_NUMBER = '593995521989';
   const WHATSAPP_MESSAGE = encodeURIComponent('Hola, me gustaría agendar una cita para mi mascota.');
   const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MESSAGE}`;
 
