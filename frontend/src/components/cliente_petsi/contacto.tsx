@@ -6,7 +6,7 @@ export default function Contacto() {
       <h2>Contáctanos</h2>
 
       <div className="contacto-grid">
-        <div>
+        <div id="direccion">
           <h3>📍 Dirección</h3>
           <p>Av. Principal y Calle Mascotas, Loja</p>
         </div>

@@ -1,6 +1,14 @@
 import './hero.css';
 import veterinaryDoctor from '../../assets/fonts/feather-icons/images/veterinary-doctor.png';
 
+function scrollAndHighlight(id: string) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('highlight-pulse');
+    setTimeout(() => el.classList.remove('highlight-pulse'), 2000);
+}
+
 export default function hero() {
     return (
         <section className="hero">
@@ -15,8 +23,8 @@ export default function hero() {
                 </p>
 
                 <div className="hero-buttons">
-                    <button className="btn-primary">Comienza el Cuidado</button>
-                    <button className="btn-secondary">Nuestras Instalaciones</button>
+                    <button className="btn-primary" onClick={() => scrollAndHighlight('reservar-cita')}>Comienza el Cuidado</button>
+                    <button className="btn-secondary" onClick={() => scrollAndHighlight('direccion')}>Nuestras Instalaciones</button>
                 </div>
             </div>
 

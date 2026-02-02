@@ -24,3 +24,13 @@
 .cta button:hover {
   transform: scale(1.05);
 }
+
+.cta.highlight-pulse {
+  animation: ctaPulse 2s ease-out;
+}
+
+@keyframes ctaPulse {
+  0%, 100% { box-shadow: none; }
+  15%, 85% { box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.45), 0 0 30px rgba(37, 99, 235, 0.25); }
+  50% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0.55), 0 0 50px rgba(37, 99, 235, 0.35); }
+}

@@ -2,7 +2,7 @@ import './cta.css';
 
 export default function cta() {
   return (
-    <section className="cta">
+    <section className="cta" id="reservar-cita">
       <h2>Agenda una cita para tu mascota hoy</h2>
       <p>
         Nuestro equipo veterinario está listo para cuidar a tu mejor amigo.
