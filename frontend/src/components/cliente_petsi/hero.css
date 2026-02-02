@@ -1,14 +1,14 @@
 .hero {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-  gap: 60px;
-  background-color: var(--light-blue);
   min-height: 90vh;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #f8fafc, #eef2ff);
 }
 
-.hero h1 span {
-  color: var(--primary-blue);
+.hero h1 {
+  font-size: clamp(2.2rem, 4vw, 3.2rem);
+  font-weight: 800;
+  color: #0f172a;
 }
 
 .hero h1 .petsi-brand {
@@ -26,8 +26,10 @@
 }
 
 .hero p {
+  font-size: 1.1rem;
+  color: #475569;
+  max-width: 520px;
   margin: 20px 0 30px;
-  max-width: 500px;
 }
 
 .hero-buttons {
@@ -38,7 +40,7 @@
 .hero-image {
   height: 420px;
   background-color: #dbe7ff;
-  border-radius: var(--border-radius);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -51,7 +53,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: var(--border-radius);
+  border-radius: 16px;
 }
 
 @keyframes fadeInScale {
@@ -64,24 +66,6 @@
     transform: scale(1);
   }
 }
-.hero {
-  min-height: 90vh;
-  display: flex;
-  align-items: center;
-  background: linear-gradient(135deg,#f8fafc,#eef2ff);
-}
-
-.hero h1 {
-  font-size: clamp(2.2rem, 4vw, 3.2rem);
-  font-weight: 800;
-  color: #0f172a;
-}
-
-.hero p {
-  font-size: 1.1rem;
-  color: #475569;
-  max-width: 520px;
-}
 
 .hero button {
   margin-top: 20px;
@@ -95,40 +79,5 @@
 
 .hero button:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(37,99,235,.4);
+  box-shadow: 0 12px 30px rgba(37, 99, 235, .4);
 }
-
-.hero {
-  min-height: 90vh;
-  display: flex;
-  align-items: center;
-  background: linear-gradient(135deg,#f8fafc,#eef2ff);
-}
-
-.hero h1 {
-  font-size: clamp(2.2rem, 4vw, 3.2rem);
-  font-weight: 800;
-  color: #0f172a;
-}
-
-.hero p {
-  font-size: 1.1rem;
-  color: #475569;
-  max-width: 520px;
-}
-
-.hero button {
-  margin-top: 20px;
-  background: #2563eb;
-  color: white;
-  padding: 14px 28px;
-  border-radius: 12px;
-  font-weight: 600;
-  transition: .3s;
-}
-
-.hero button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(37,99,235,.4);
-}
-

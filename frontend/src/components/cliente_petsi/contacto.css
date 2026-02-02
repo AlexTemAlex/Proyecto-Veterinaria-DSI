@@ -14,3 +14,14 @@
   color: var(--primary-blue);
   margin-bottom: 10px;
 }
+
+#direccion.highlight-pulse {
+  animation: direccionPulse 2s ease-out;
+  border-radius: 12px;
+}
+
+@keyframes direccionPulse {
+  0%, 100% { box-shadow: none; background: transparent; }
+  15%, 85% { box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.4), 0 0 20px rgba(37, 99, 235, 0.2); background: rgba(37, 99, 235, 0.08); }
+  50% { box-shadow: 0 0 0 8px rgba(37, 99, 235, 0.5), 0 0 40px rgba(37, 99, 235, 0.3); background: rgba(37, 99, 235, 0.12); }
+}

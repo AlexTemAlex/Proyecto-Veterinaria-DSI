@@ -51,6 +51,9 @@
   gap: 30px;
   list-style: none;
   align-items: center;
+  margin: 0;
+  padding: 0;
+  height: 100%;
 }
 
 .nav-link {
@@ -81,4 +84,25 @@
 
 .nav-link:hover::after {
   width: 100%;
+}
+
+/* Botón Iniciar sesión */
+.navbar2-btn {
+  background-color: #0B5ED7;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 16px;
+  padding: 10px 28px;
+  border-radius: 10px;
+  text-decoration: none;
+  display: inline-block;
+  border: none;
+  cursor: pointer;
+}
+
+.navbar2-btn:hover {
+  background-color: #0B5ED7;
+  color: #ffffff;
+  transform: none;
+  box-shadow: none;
 }

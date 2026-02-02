@@ -1,7 +1,7 @@
 // import node module libraries
 import { Fragment } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Card, Image, Badge } from "react-bootstrap";
+import { Card, Badge } from "react-bootstrap";
 import { Accordion } from "react-bootstrap";
 
 // import simple bar scrolling used for notification item scrolling
@@ -43,23 +43,12 @@ const Sidebar: React.FC<SidebarProps> = ({ toggleMenu }) => {
         style={{
           height: "100vh",
           position: "fixed",
+          width: "250px",
         }}
       >
         {/* Logo */}
-        <div className="px-10 py-3">
-          <Link to="/" className="d-flex align-items-center"
-          >
-            <Image
-              src="/images/brand/logo/brand-logo.png"
-              alt="Logo"
-              fluid
-              style={{
-                maxWidth: "100px",
-                borderRadius: "12px",
-              }}
-            />
-          </Link>
-
+        <div className="nav-scroller" style={{ display: "flex", justifyContent: "center", padding: "1.5rem 1rem" }}>
+          <img src="/images/brand/logo/logo.svg" alt="PETSI" style={{ height: "3rem" }} />
         </div>
 
         {/* Dashboard Menu */}
@@ -100,13 +89,13 @@ const Sidebar: React.FC<SidebarProps> = ({ toggleMenu }) => {
           })}
         </Accordion>
 
-        {/* Separador y Cerrar sesión */}
-        <div className="border-top my-3 mx-3"></div>
-        <ul className="navbar-nav flex-column px-3">
+        {/* Cerrar sesión */}
+        <ul className="navbar-nav flex-column px-2 pb-4">
           <li className="nav-item">
             <Link
               to="/auth/sign-in"
               className="nav-link text-danger"
+              style={{ paddingLeft: "1rem", paddingRight: "0.5rem" }}
               onClick={() => {
                 localStorage.clear();
                 sessionStorage.clear();

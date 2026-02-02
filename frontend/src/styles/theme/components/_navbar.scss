@@ -3,6 +3,8 @@
 .navbar-classic {
     background-color: #fff;
     box-shadow: $smooth-shadow-sm;
+    border-radius: 1rem;
+    margin: 0.75rem 1rem 0;
 
     .navbar-right-wrap {
         .list-group-item {

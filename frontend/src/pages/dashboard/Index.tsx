@@ -306,7 +306,7 @@ const Dashboard = () => {
         <Row className="mb-4">
           {statsData.map((stat, index) => (
             <Col xl={4} lg={4} md={12} xs={12} className="mb-4" key={index}>
-              <Card className="h-100 border-0 shadow-sm">
+              <Card className="h-100 border-0 shadow-sm rounded-4">
                 <Card.Body className="p-4">
                   <div className="d-flex justify-content-between align-items-start">
                     <div>
@@ -361,7 +361,7 @@ const Dashboard = () => {
         {/* Chart */}
         <Row className="mb-4">
           <Col xs={12}>
-            <Card className="border-0 shadow-sm">
+            <Card className="border-0 shadow-sm rounded-4">
               <Card.Body className="p-4">
                 <div className="d-flex justify-content-between align-items-center mb-4">
                   <h5 className="fw-bold mb-0">Citas</h5>
@@ -390,7 +390,7 @@ const Dashboard = () => {
         {/* Citas Table */}
         <Row>
           <Col xs={12}>
-            <Card className="border-0 shadow-sm">
+            <Card className="border-0 shadow-sm rounded-4">
               <Card.Body className="p-4">
                 <div className="d-flex justify-content-between align-items-center mb-4">
                   <h5 className="fw-bold mb-0">Citas Detalladas</h5>
