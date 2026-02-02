@@ -8,7 +8,12 @@ export default function cta() {
 mejor amigo sano y feliz.
       </p>
 
-      {/* Botón removido para evitar redundancia con otros CTAs */}
+      <button
+        className="cta-btn"
+        onClick={() => window.open("https://wa.me/593995521989?text=Hola%2C%20quiero%20reservar%20una%20cita", "_blank")}
+      >
+        Reservar cita
+      </button>
     </section>
   );
 }

@@ -6,114 +6,109 @@ import {
   Card,
   Table,
   Badge,
-  Button,
   Form,
   Spinner,
-  Modal,
+  Pagination,
 } from "react-bootstrap";
-import { useNotifications } from "context/NotificationContext";
 
-// Interfaces
 export interface CitaData {
   id: string;
-  paciente: string;
+  cedula: string;
+  mascota: string;
   dueno: string;
-  fecha: string;
-  horaIngreso: string;
-  horaSalida: string;
+  fechaCita: string;
+  horaCita: string;
   tipoCita: string;
-  estado: string;
-  veterinario?: string;
-  actividad?: string;
-}
-
-export interface EventoData {
-  id: string;
-  nombre: string;
-  encargado: string;
-  fecha: string;
-  horaInicio: string;
-  horaFin: string;
-  actividades: string;
+  telefono: string;
   estado: string;
 }
-
-type VistaCalendario = "Lista" | "Mes" | "Semana" | "Dia";
-
-const MESES = [
-  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
-];
-
-const ITEMS_PER_PAGE = 5;
 
 const API_BASE_URL = "/api";
+const ITEMS_PER_PAGE = 10;
 
 const getEstadoBadge = (estado: string) => {
   switch (estado.toLowerCase()) {
-    case "completado":
-      return "success";
-    case "en espera":
-      return "warning";
-    case "cancelado":
-      return "danger";
     case "activo":
       return "success";
-    case "modificado":
-      return "info";
+    case "cancelado":
+      return "danger";
+    case "reprogramado":
+      return "warning";
     default:
       return "secondary";
   }
 };
 
-const formatFechaSidebar = (fecha: string): string => {
-  const dias = ["Domingo", "Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado"];
-  const d = new Date(fecha);
-  return `${dias[d.getDay()]} ${d.getDate().toString().padStart(2, "0")} de ${MESES[d.getMonth()]} a las ${d.toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" })}`;
+const getEstadoColor = (estado: string) => {
+  switch (estado.toLowerCase()) {
+    case "activo":
+      return "#198754";
+    case "cancelado":
+      return "#dc3545";
+    case "reprogramado":
+      return "#ffc107";
+    default:
+      return "#6c757d";
+  }
+};
+
+const formatTelefono = (tel: string): string => {
+  if (!tel) return "";
+  const trimmed = tel.trim();
+  if (trimmed.startsWith("+")) return trimmed;
+  if (!trimmed.startsWith("0")) return "0" + trimmed;
+  return trimmed;
+};
+
+const todayStr = (): string => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 };
 
 const Citas = () => {
-  const { addNotification } = useNotifications();
-
-  // Data state
   const [citas, setCitas] = useState<CitaData[]>([]);
-  const [eventos, setEventos] = useState<EventoData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Calendar state
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [vistaActiva, setVistaActiva] = useState<VistaCalendario>("Lista");
+  // Filters
+  const [fechaDesde, setFechaDesde] = useState(todayStr());
+  const [fechaHasta, setFechaHasta] = useState(todayStr());
+  const [filtroTipo, setFiltroTipo] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
-  // Citas filters
-  const [filtroTipoCita, setFiltroTipoCita] = useState("");
-  const [filtroEstadoCita, setFiltroEstadoCita] = useState("");
-  const [paginaCitas, setPaginaCitas] = useState(1);
+  // Date validation error
+  const fechaError = fechaDesde && fechaHasta && fechaDesde > fechaHasta;
 
-  // Eventos filters
-  const [filtroFechaEvento, setFiltroFechaEvento] = useState("");
-  const [filtroEstadoEvento, setFiltroEstadoEvento] = useState("");
-  const [paginaEventos, setPaginaEventos] = useState(1);
-
-  // Modal state
-  const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState<"cita" | "evento">("cita");
-  const [newCita, setNewCita] = useState<Partial<CitaData>>({});
-  const [newEvento, setNewEvento] = useState<Partial<EventoData>>({});
-
-  // Fetch data
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      setError(null);
       try {
-        const [citasRes, eventosRes] = await Promise.allSettled([
-          fetch(`${API_BASE_URL}/citas`).then((r) => (r.ok ? r.json() : [])),
-          fetch(`${API_BASE_URL}/eventos`).then((r) => (r.ok ? r.json() : [])),
-        ]);
-        setCitas(citasRes.status === "fulfilled" ? citasRes.value : []);
-        setEventos(eventosRes.status === "fulfilled" ? eventosRes.value : []);
-      } catch {
-        setCitas([]);
-        setEventos([]);
+        const res = await fetch(`${API_BASE_URL}/citas`);
+        if (!res.ok) throw new Error("Error al obtener citas");
+        const raw = await res.json();
+        const list = Array.isArray(raw) ? raw : raw.citas ?? raw.data ?? [];
+
+        const mapped: CitaData[] = list.map((c: any) => ({
+          id: String(c["ID"] ?? ""),
+          cedula: String(c["Cedula"] ?? ""),
+          mascota: String(c["Mascota"] ?? ""),
+          dueno: String(c["Dueño"] ?? c["Dueno"] ?? ""),
+          fechaCita: String(c["Fecha cita"] ?? c["Fecha_cita"] ?? ""),
+          horaCita: String(c["Hora cita"] ?? c["Hora_cita"] ?? ""),
+          tipoCita: String(c["Tipo cita"] ?? c["Tipo_cita"] ?? ""),
+          telefono: String(c["Telefono"] ?? c["Teléfono"] ?? ""),
+          estado: String(c["Estado"] ?? ""),
+        }));
+
+        setCitas(mapped);
+      } catch (err) {
+        console.error("Error fetching citas:", err);
+        setError("No se pudo cargar las citas");
       } finally {
         setLoading(false);
       }
@@ -121,158 +116,92 @@ const Citas = () => {
     fetchData();
   }, []);
 
-  // Calendar navigation
-  const mesActual = currentDate.getMonth();
-  const yearActual = currentDate.getFullYear();
+  // Próximas citas (desde hoy en adelante, ordenadas por fecha)
+  const proximasCitas = useMemo(() => {
+    const hoy = todayStr();
+    return citas
+      .filter((c) => c.fechaCita >= hoy)
+      .sort((a, b) => a.fechaCita.localeCompare(b.fechaCita) || a.horaCita.localeCompare(b.horaCita))
+      .slice(0, 6);
+  }, [citas]);
 
-  const navigateMonth = (dir: number) => {
-    setCurrentDate(new Date(yearActual, mesActual + dir, 1));
-    setPaginaCitas(1);
-    setPaginaEventos(1);
-  };
+  // Available filter options
+  const tiposDisponibles = useMemo(
+    () => [...new Set(citas.map((c) => c.tipoCita).filter(Boolean))],
+    [citas]
+  );
+  const estadosDisponibles = useMemo(
+    () => [...new Set(citas.map((c) => c.estado).filter(Boolean))],
+    [citas]
+  );
 
-  // Filter citas by current month
-  const citasDelMes = useMemo(() => {
-    return citas.filter((c) => {
-      const f = new Date(c.fecha);
-      return f.getMonth() === mesActual && f.getFullYear() === yearActual;
-    });
-  }, [citas, mesActual, yearActual]);
-
-  // Tipos de cita disponibles
-  const tiposCita = useMemo(() => {
-    return [...new Set(citasDelMes.map((c) => c.tipoCita))];
-  }, [citasDelMes]);
-
-  // Estados disponibles
-  const estadosCita = useMemo(() => {
-    return [...new Set(citasDelMes.map((c) => c.estado))];
-  }, [citasDelMes]);
-
-  const estadosEvento = useMemo(() => {
-    return [...new Set(eventos.map((e) => e.estado))];
-  }, [eventos]);
-
-  // Filtered citas
+  // Filtered data
   const citasFiltradas = useMemo(() => {
-    return citasDelMes.filter((c) => {
-      if (filtroTipoCita && c.tipoCita !== filtroTipoCita) return false;
-      if (filtroEstadoCita && c.estado !== filtroEstadoCita) return false;
+    return citas.filter((c) => {
+      if (fechaDesde && c.fechaCita < fechaDesde) return false;
+      if (fechaHasta && c.fechaCita > fechaHasta) return false;
+      if (filtroTipo && c.tipoCita !== filtroTipo) return false;
+      if (filtroEstado && c.estado !== filtroEstado) return false;
       return true;
     });
-  }, [citasDelMes, filtroTipoCita, filtroEstadoCita]);
-
-  // Filtered eventos
-  const eventosFiltrados = useMemo(() => {
-    return eventos.filter((e) => {
-      const f = new Date(e.fecha);
-      if (f.getMonth() !== mesActual || f.getFullYear() !== yearActual) return false;
-      if (filtroFechaEvento) {
-        const filterDate = new Date(filtroFechaEvento);
-        if (f.toDateString() !== filterDate.toDateString()) return false;
-      }
-      if (filtroEstadoEvento && e.estado !== filtroEstadoEvento) return false;
-      return true;
-    });
-  }, [eventos, mesActual, yearActual, filtroFechaEvento, filtroEstadoEvento]);
+  }, [citas, fechaDesde, fechaHasta, filtroTipo, filtroEstado]);
 
   // Pagination
-  const totalPagesCitas = Math.max(1, Math.ceil(citasFiltradas.length / ITEMS_PER_PAGE));
-  const citasPaginadas = citasFiltradas.slice(
-    (paginaCitas - 1) * ITEMS_PER_PAGE,
-    paginaCitas * ITEMS_PER_PAGE
-  );
+  const totalPages = Math.max(1, Math.ceil(citasFiltradas.length / ITEMS_PER_PAGE));
 
-  const totalPagesEventos = Math.max(1, Math.ceil(eventosFiltrados.length / ITEMS_PER_PAGE));
-  const eventosPaginados = eventosFiltrados.slice(
-    (paginaEventos - 1) * ITEMS_PER_PAGE,
-    paginaEventos * ITEMS_PER_PAGE
-  );
+  const citasPaginadas = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return citasFiltradas.slice(start, start + ITEMS_PER_PAGE);
+  }, [citasFiltradas, currentPage]);
 
-  // Próximas actividades (sidebar)
-  const proximasActividades = useMemo(() => {
-    const now = new Date();
-    const allItems = [
-      ...citas.map((c) => ({
-        tipo: "CITA" as const,
-        titulo: `${c.tipoCita} ${c.paciente}`,
-        fecha: c.fecha,
-        horaIngreso: c.horaIngreso,
-        paciente: c.paciente,
-        dueno: c.dueno,
-        veterinario: c.veterinario || "",
-        actividad: c.actividad || "",
-        color: "primary",
-      })),
-      ...eventos.map((e) => ({
-        tipo: "EVENTO" as const,
-        titulo: e.nombre,
-        fecha: e.fecha,
-        horaIngreso: e.horaInicio,
-        paciente: "",
-        dueno: "",
-        veterinario: e.encargado,
-        actividad: e.actividades,
-        color: "warning",
-      })),
-    ];
-    return allItems
-      .filter((item) => new Date(item.fecha) >= new Date(now.toDateString()))
-      .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())
-      .slice(0, 5);
-  }, [citas, eventos]);
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [fechaDesde, fechaHasta, filtroTipo, filtroEstado]);
 
-  // Reset filters
-  const resetCitaFilters = () => {
-    setFiltroTipoCita("");
-    setFiltroEstadoCita("");
-    setPaginaCitas(1);
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
 
-  const resetEventoFilters = () => {
-    setFiltroFechaEvento("");
-    setFiltroEstadoEvento("");
-    setPaginaEventos(1);
-  };
+  const renderPagination = () => {
+    const items = [];
+    const maxVisible = 4;
 
-  // Add new cita
-  const handleAddCita = () => {
-    if (!newCita.paciente || !newCita.fecha) return;
-    const cita: CitaData = {
-      id: `C${String(citas.length + 1).padStart(5, "0")}`,
-      paciente: newCita.paciente || "",
-      dueno: newCita.dueno || "",
-      fecha: newCita.fecha || "",
-      horaIngreso: newCita.horaIngreso || "",
-      horaSalida: newCita.horaSalida || "------",
-      tipoCita: newCita.tipoCita || "",
-      estado: "En Espera",
-      veterinario: newCita.veterinario || "",
-      actividad: newCita.actividad || "",
-    };
-    setCitas((prev) => [...prev, cita]);
-    addNotification("citas", "agregar", `cita para "${cita.paciente}"`);
-    setShowModal(false);
-    setNewCita({});
-  };
+    items.push(
+      <Pagination.Item key={1} active={currentPage === 1} onClick={() => handlePageChange(1)}>
+        1
+      </Pagination.Item>
+    );
 
-  // Add new evento
-  const handleAddEvento = () => {
-    if (!newEvento.nombre || !newEvento.fecha) return;
-    const evento: EventoData = {
-      id: `E${String(eventos.length + 1).padStart(5, "0")}`,
-      nombre: newEvento.nombre || "",
-      encargado: newEvento.encargado || "",
-      fecha: newEvento.fecha || "",
-      horaInicio: newEvento.horaInicio || "",
-      horaFin: newEvento.horaFin || "",
-      actividades: newEvento.actividades || "",
-      estado: "En Espera",
-    };
-    setEventos((prev) => [...prev, evento]);
-    addNotification("citas", "agregar", `evento "${evento.nombre}"`);
-    setShowModal(false);
-    setNewEvento({});
+    if (totalPages <= 1) return items;
+
+    let start = Math.max(2, currentPage - 1);
+    let end = Math.min(totalPages - 1, start + maxVisible - 2);
+    start = Math.max(2, end - (maxVisible - 2));
+
+    if (start > 2) {
+      items.push(<Pagination.Ellipsis key="start-ellipsis" disabled />);
+    }
+
+    for (let i = start; i <= end; i++) {
+      items.push(
+        <Pagination.Item key={i} active={i === currentPage} onClick={() => handlePageChange(i)}>
+          {i}
+        </Pagination.Item>
+      );
+    }
+
+    if (end < totalPages - 1) {
+      items.push(<Pagination.Ellipsis key="end-ellipsis" disabled />);
+    }
+
+    items.push(
+      <Pagination.Item key={totalPages} active={currentPage === totalPages} onClick={() => handlePageChange(totalPages)}>
+        {totalPages}
+      </Pagination.Item>
+    );
+
+    return items;
   };
 
   if (loading) {
@@ -285,222 +214,156 @@ const Citas = () => {
 
   return (
     <Container fluid className="p-6">
-      <h2 className="fw-bold mb-4">Calendario de Citas</h2>
-
       <Row>
-        {/* Sidebar */}
-        <Col lg={3} className="mb-4">
-          <Button
-            variant="success"
-            className="w-100 mb-4"
-            onClick={() => {
-              setModalType("cita");
-              setShowModal(true);
-            }}
-          >
-            + Agregar Nueva Actividad
-          </Button>
-
-          <h6 className="fw-bold mb-3">Próximas Actividades</h6>
-          {proximasActividades.length === 0 ? (
-            <p className="text-muted small">No hay actividades próximas</p>
-          ) : (
-            proximasActividades.map((act, i) => (
-              <Card
-                key={i}
-                className="mb-3 border-0 shadow-sm"
-                style={{
-                  borderLeft: `4px solid ${
-                    act.tipo === "CITA" ? "#0d6efd" : "#ffc107"
-                  }`,
-                }}
-              >
-                <Card.Body className="p-3">
-                  <div className="d-flex align-items-center mb-1">
-                    <Badge
-                      bg={act.tipo === "CITA" ? "primary" : "warning"}
-                      className="me-2"
-                      style={{ fontSize: "0.7rem" }}
-                    >
-                      {act.tipo}
-                    </Badge>
-                    <strong className="small">{act.titulo}</strong>
-                  </div>
-                  <p className="text-muted mb-1" style={{ fontSize: "0.75rem" }}>
-                    {formatFechaSidebar(act.fecha)}
-                  </p>
-                  {act.paciente && (
-                    <p className="mb-0 text-muted" style={{ fontSize: "0.75rem" }}>
-                      &lt;Paciente&gt; {act.paciente}
-                    </p>
-                  )}
-                  {act.dueno && (
-                    <p className="mb-0 text-muted" style={{ fontSize: "0.75rem" }}>
-                      &lt;Dueño&gt; {act.dueno}
-                    </p>
-                  )}
-                  {act.veterinario && (
-                    <p className="mb-0 text-muted" style={{ fontSize: "0.75rem" }}>
-                      &lt;Veterinario o Empleado&gt; {act.veterinario}
-                    </p>
-                  )}
-                  {act.actividad && (
-                    <p className="mb-0 text-muted" style={{ fontSize: "0.75rem" }}>
-                      &lt;Actividad&gt; {act.actividad}
-                    </p>
-                  )}
-                </Card.Body>
-              </Card>
-            ))
-          )}
-
-          {proximasActividades.length > 0 && (
-            <Button variant="primary" size="sm" className="w-100">
-              Ver Más
-            </Button>
-          )}
+        <Col lg={12} md={12} xs={12}>
+          <div className="border-bottom pb-4 mb-4">
+            <h3 className="mb-0 fw-bold">Citas</h3>
+          </div>
         </Col>
+      </Row>
 
-        {/* Main content */}
-        <Col lg={9}>
-          {/* Calendar header */}
-          <Card className="border-0 shadow-sm mb-4">
-            <Card.Body className="p-3">
-              <div className="d-flex justify-content-between align-items-center">
-                <Button variant="outline-secondary" size="sm">
-                  Hoy
-                </Button>
-                <div className="d-flex align-items-center gap-3">
-                  <Button
-                    variant="link"
-                    className="text-dark p-0"
-                    onClick={() => navigateMonth(-1)}
-                  >
-                    &lt;
-                  </Button>
-                  <h5 className="mb-0 fw-bold">
-                    {MESES[mesActual]} {yearActual}
-                  </h5>
-                  <Button
-                    variant="link"
-                    className="text-dark p-0"
-                    onClick={() => navigateMonth(1)}
-                  >
-                    &gt;
-                  </Button>
-                </div>
-                <div className="btn-group">
-                  {(["Lista", "Mes", "Semana", "Dia"] as VistaCalendario[]).map(
-                    (vista) => (
-                      <Button
-                        key={vista}
-                        variant={vistaActiva === vista ? "primary" : "outline-primary"}
-                        size="sm"
-                        onClick={() => setVistaActiva(vista)}
-                      >
-                        {vista}
-                      </Button>
-                    )
-                  )}
-                </div>
-              </div>
-            </Card.Body>
-          </Card>
+      {/* Próximas Citas */}
+      {proximasCitas.length > 0 && (
+        <>
+          <h5 className="fw-bold mb-3">Próximas Citas</h5>
+          <Row className="mb-4">
+            {proximasCitas.map((cita, i) => (
+              <Col xs={12} md={6} lg={4} key={i} className="mb-3">
+                <Card
+                  className="border-0 shadow-sm h-100"
+                  style={{ borderLeft: `4px solid ${getEstadoColor(cita.estado)}` }}
+                >
+                  <Card.Body className="p-3">
+                    <div className="d-flex justify-content-between align-items-start mb-2">
+                      <h6 className="fw-bold mb-0">{cita.mascota}</h6>
+                      <Badge pill bg={getEstadoBadge(cita.estado)} className="px-2 py-1" style={{ fontSize: "0.7rem" }}>
+                        {cita.estado}
+                      </Badge>
+                    </div>
+                    <p className="text-muted mb-1" style={{ fontSize: "0.85rem" }}>
+                      <strong>Dueño:</strong> {cita.dueno}
+                    </p>
+                    <p className="text-muted mb-1" style={{ fontSize: "0.85rem" }}>
+                      <strong>Fecha:</strong> {cita.fechaCita} &nbsp; <strong>Hora:</strong> {cita.horaCita}
+                    </p>
+                    <p className="text-muted mb-1" style={{ fontSize: "0.85rem" }}>
+                      <strong>Tipo:</strong> {cita.tipoCita}
+                    </p>
+                    <p className="text-muted mb-1" style={{ fontSize: "0.85rem" }}>
+                      <strong>Cédula:</strong> {cita.cedula}
+                    </p>
+                    <p className="text-muted mb-0" style={{ fontSize: "0.85rem" }}>
+                      <strong>Teléfono:</strong> {formatTelefono(cita.telefono)}
+                    </p>
+                  </Card.Body>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        </>
+      )}
 
-          {/* Citas Table */}
-          <Card className="border-0 shadow-sm mb-4">
-            <Card.Body className="p-4">
-              <h5 className="fw-bold mb-3">Citas</h5>
-              <div className="d-flex align-items-center gap-3 mb-3 flex-wrap">
-                <i className="fe fe-filter text-muted"></i>
-                <span className="text-muted small">
-                  {new Date(yearActual, mesActual, 1).toLocaleDateString("es", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })}{" "}
-                  al{" "}
-                  {new Date(yearActual, mesActual + 1, 0).toLocaleDateString("es", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })}
-                </span>
+      {/* Filters */}
+      <Card className="border-0 shadow-sm mb-4">
+        <Card.Body className="p-4">
+          <Row className="align-items-end g-3">
+            <Col xs={12} md={3}>
+              <Form.Group>
+                <Form.Label className="small text-muted mb-1">Desde</Form.Label>
+                <Form.Control
+                  type="date"
+                  size="sm"
+                  value={fechaDesde}
+                  onChange={(e) => setFechaDesde(e.target.value)}
+                  isInvalid={!!fechaError}
+                />
+              </Form.Group>
+            </Col>
+            <Col xs={12} md={3}>
+              <Form.Group>
+                <Form.Label className="small text-muted mb-1">Hasta</Form.Label>
+                <Form.Control
+                  type="date"
+                  size="sm"
+                  value={fechaHasta}
+                  min={fechaDesde}
+                  onChange={(e) => setFechaHasta(e.target.value)}
+                  isInvalid={!!fechaError}
+                />
+                {fechaError && (
+                  <Form.Control.Feedback type="invalid">
+                    La fecha "Hasta" no puede ser anterior a "Desde"
+                  </Form.Control.Feedback>
+                )}
+              </Form.Group>
+            </Col>
+            <Col xs={12} md={3}>
+              <Form.Group>
+                <Form.Label className="small text-muted mb-1">Tipo de Cita</Form.Label>
                 <Form.Select
                   size="sm"
-                  style={{ width: "auto" }}
-                  value={filtroTipoCita}
-                  onChange={(e) => {
-                    setFiltroTipoCita(e.target.value);
-                    setPaginaCitas(1);
-                  }}
+                  value={filtroTipo}
+                  onChange={(e) => setFiltroTipo(e.target.value)}
                 >
-                  <option value="">Filtrar Tipo De Cita</option>
-                  {tiposCita.map((t) => (
+                  <option value="">Todos</option>
+                  {tiposDisponibles.map((t) => (
                     <option key={t} value={t}>{t}</option>
                   ))}
                 </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col xs={12} md={3}>
+              <Form.Group>
+                <Form.Label className="small text-muted mb-1">Estado</Form.Label>
                 <Form.Select
                   size="sm"
-                  style={{ width: "auto" }}
-                  value={filtroEstadoCita}
-                  onChange={(e) => {
-                    setFiltroEstadoCita(e.target.value);
-                    setPaginaCitas(1);
-                  }}
+                  value={filtroEstado}
+                  onChange={(e) => setFiltroEstado(e.target.value)}
                 >
-                  <option value="">Filtrar Estado</option>
-                  {estadosCita.map((e) => (
+                  <option value="">Todos</option>
+                  {estadosDisponibles.map((e) => (
                     <option key={e} value={e}>{e}</option>
                   ))}
                 </Form.Select>
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="text-danger"
-                  onClick={resetCitaFilters}
-                >
-                  <i className="fe fe-refresh-cw me-1"></i>
-                  Reiniciar Filtro
-                </Button>
-              </div>
+              </Form.Group>
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
 
-              <Table responsive className="text-nowrap">
+      {/* Table */}
+      <Card className="border-0 shadow-sm">
+        <Card.Body className="p-4">
+          {error ? (
+            <div className="text-center py-5 text-danger">{error}</div>
+          ) : (
+            <>
+              <Table hover responsive className="text-nowrap">
                 <thead className="table-light">
                   <tr>
                     <th>ID</th>
-                    <th>PACIENTE</th>
-                    <th>DUEÑO</th>
-                    <th>FECHA</th>
-                    <th>HORA INGRESO</th>
-                    <th>HORA SALIDA</th>
-                    <th>TIPO DE CITA</th>
-                    <th>ESTADO</th>
+                    <th>Cedula</th>
+                    <th>Mascota</th>
+                    <th>Dueño</th>
+                    <th>Fecha Cita</th>
+                    <th>Hora Cita</th>
+                    <th>Tipo Cita</th>
+                    <th>Telefono</th>
+                    <th>Estado</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {citasPaginadas.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="text-center text-muted py-4">
-                        No hay citas para este mes
-                      </td>
-                    </tr>
-                  ) : (
-                    citasPaginadas.map((cita) => (
-                      <tr key={cita.id}>
+                  {citasPaginadas.length > 0 ? (
+                    citasPaginadas.map((cita, index) => (
+                      <tr key={index}>
                         <td>{cita.id}</td>
-                        <td>{cita.paciente}</td>
+                        <td>{cita.cedula}</td>
+                        <td>{cita.mascota}</td>
                         <td>{cita.dueno}</td>
-                        <td>
-                          {new Date(cita.fecha).toLocaleDateString("es", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          })}
-                        </td>
-                        <td>{cita.horaIngreso}</td>
-                        <td>{cita.horaSalida}</td>
+                        <td>{cita.fechaCita}</td>
+                        <td>{cita.horaCita}</td>
                         <td>{cita.tipoCita}</td>
+                        <td>{formatTelefono(cita.telefono)}</td>
                         <td>
                           <Badge pill bg={getEstadoBadge(cita.estado)} className="px-3 py-2">
                             {cita.estado}
@@ -508,299 +371,35 @@ const Citas = () => {
                         </td>
                       </tr>
                     ))
-                  )}
-                </tbody>
-              </Table>
-
-              {totalPagesCitas > 1 && (
-                <div className="d-flex justify-content-between align-items-center">
-                  <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    disabled={paginaCitas <= 1}
-                    onClick={() => setPaginaCitas((p) => p - 1)}
-                  >
-                    &lt; Anterior
-                  </Button>
-                  <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    disabled={paginaCitas >= totalPagesCitas}
-                    onClick={() => setPaginaCitas((p) => p + 1)}
-                  >
-                    Siguiente &gt;
-                  </Button>
-                </div>
-              )}
-            </Card.Body>
-          </Card>
-
-          {/* Eventos Table */}
-          <Card className="border-0 shadow-sm">
-            <Card.Body className="p-4">
-              <h5 className="fw-bold mb-3">Eventos</h5>
-              <div className="d-flex align-items-center gap-3 mb-3 flex-wrap">
-                <i className="fe fe-filter text-muted"></i>
-                <Form.Control
-                  type="date"
-                  size="sm"
-                  style={{ width: "auto" }}
-                  value={filtroFechaEvento}
-                  onChange={(e) => {
-                    setFiltroFechaEvento(e.target.value);
-                    setPaginaEventos(1);
-                  }}
-                />
-                <Form.Select
-                  size="sm"
-                  style={{ width: "auto" }}
-                  value={filtroEstadoEvento}
-                  onChange={(e) => {
-                    setFiltroEstadoEvento(e.target.value);
-                    setPaginaEventos(1);
-                  }}
-                >
-                  <option value="">Filtrar Estado</option>
-                  {estadosEvento.map((e) => (
-                    <option key={e} value={e}>{e}</option>
-                  ))}
-                </Form.Select>
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="text-danger"
-                  onClick={resetEventoFilters}
-                >
-                  <i className="fe fe-refresh-cw me-1"></i>
-                  Reiniciar Filtro
-                </Button>
-                <div className="ms-auto">
-                  <Button
-                    variant="warning"
-                    size="sm"
-                    onClick={() => {
-                      setModalType("evento");
-                      setShowModal(true);
-                    }}
-                  >
-                    + Nuevo Evento
-                  </Button>
-                </div>
-              </div>
-
-              <Table responsive className="text-nowrap">
-                <thead className="table-light">
-                  <tr>
-                    <th>ID</th>
-                    <th>NOMBRE</th>
-                    <th>ENCARGADO</th>
-                    <th>FECHA</th>
-                    <th>HORA INICIO</th>
-                    <th>HORA FIN</th>
-                    <th>ACTIVIDADES</th>
-                    <th>ESTADO</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {eventosPaginados.length === 0 ? (
+                  ) : (
                     <tr>
-                      <td colSpan={8} className="text-center text-muted py-4">
-                        No hay eventos para este mes
+                      <td colSpan={9} className="text-center text-muted py-4">
+                        No se encontraron citas
                       </td>
                     </tr>
-                  ) : (
-                    eventosPaginados.map((evento) => (
-                      <tr key={evento.id}>
-                        <td>{evento.id}</td>
-                        <td>{evento.nombre}</td>
-                        <td>{evento.encargado}</td>
-                        <td>
-                          {new Date(evento.fecha).toLocaleDateString("es", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          })}
-                        </td>
-                        <td>{evento.horaInicio}</td>
-                        <td>{evento.horaFin}</td>
-                        <td>{evento.actividades}</td>
-                        <td>
-                          <Badge pill bg={getEstadoBadge(evento.estado)} className="px-3 py-2">
-                            {evento.estado}
-                          </Badge>
-                        </td>
-                      </tr>
-                    ))
                   )}
                 </tbody>
               </Table>
 
-              {totalPagesEventos > 1 && (
-                <div className="d-flex justify-content-between align-items-center">
-                  <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    disabled={paginaEventos <= 1}
-                    onClick={() => setPaginaEventos((p) => p - 1)}
-                  >
-                    &lt; Anterior
-                  </Button>
-                  <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    disabled={paginaEventos >= totalPagesEventos}
-                    onClick={() => setPaginaEventos((p) => p + 1)}
-                  >
-                    Siguiente &gt;
-                  </Button>
+              {totalPages > 1 && (
+                <div className="d-flex justify-content-end">
+                  <Pagination className="mb-0">
+                    <Pagination.Prev
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    />
+                    {renderPagination()}
+                    <Pagination.Next
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    />
+                  </Pagination>
                 </div>
               )}
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Modal para agregar cita o evento */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>
-            {modalType === "cita" ? "Nueva Cita" : "Nuevo Evento"}
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {modalType === "cita" ? (
-            <>
-              <Form.Group className="mb-3">
-                <Form.Label>Paciente</Form.Label>
-                <Form.Control
-                  value={newCita.paciente || ""}
-                  onChange={(e) => setNewCita({ ...newCita, paciente: e.target.value })}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Dueño</Form.Label>
-                <Form.Control
-                  value={newCita.dueno || ""}
-                  onChange={(e) => setNewCita({ ...newCita, dueno: e.target.value })}
-                />
-              </Form.Group>
-              <Row>
-                <Col>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Fecha</Form.Label>
-                    <Form.Control
-                      type="date"
-                      value={newCita.fecha || ""}
-                      onChange={(e) => setNewCita({ ...newCita, fecha: e.target.value })}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Hora Ingreso</Form.Label>
-                    <Form.Control
-                      type="time"
-                      value={newCita.horaIngreso || ""}
-                      onChange={(e) => setNewCita({ ...newCita, horaIngreso: e.target.value })}
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
-              <Form.Group className="mb-3">
-                <Form.Label>Tipo de Cita</Form.Label>
-                <Form.Control
-                  value={newCita.tipoCita || ""}
-                  onChange={(e) => setNewCita({ ...newCita, tipoCita: e.target.value })}
-                  placeholder="Ej: Vacunación, Control, Cirugía"
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Veterinario o Empleado</Form.Label>
-                <Form.Control
-                  value={newCita.veterinario || ""}
-                  onChange={(e) => setNewCita({ ...newCita, veterinario: e.target.value })}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Actividad</Form.Label>
-                <Form.Control
-                  value={newCita.actividad || ""}
-                  onChange={(e) => setNewCita({ ...newCita, actividad: e.target.value })}
-                />
-              </Form.Group>
-            </>
-          ) : (
-            <>
-              <Form.Group className="mb-3">
-                <Form.Label>Nombre del Evento</Form.Label>
-                <Form.Control
-                  value={newEvento.nombre || ""}
-                  onChange={(e) => setNewEvento({ ...newEvento, nombre: e.target.value })}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Encargado</Form.Label>
-                <Form.Control
-                  value={newEvento.encargado || ""}
-                  onChange={(e) => setNewEvento({ ...newEvento, encargado: e.target.value })}
-                />
-              </Form.Group>
-              <Row>
-                <Col>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Fecha</Form.Label>
-                    <Form.Control
-                      type="date"
-                      value={newEvento.fecha || ""}
-                      onChange={(e) => setNewEvento({ ...newEvento, fecha: e.target.value })}
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
-              <Row>
-                <Col>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Hora Inicio</Form.Label>
-                    <Form.Control
-                      type="time"
-                      value={newEvento.horaInicio || ""}
-                      onChange={(e) => setNewEvento({ ...newEvento, horaInicio: e.target.value })}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Hora Fin</Form.Label>
-                    <Form.Control
-                      type="time"
-                      value={newEvento.horaFin || ""}
-                      onChange={(e) => setNewEvento({ ...newEvento, horaFin: e.target.value })}
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
-              <Form.Group className="mb-3">
-                <Form.Label>Actividades</Form.Label>
-                <Form.Control
-                  value={newEvento.actividades || ""}
-                  onChange={(e) => setNewEvento({ ...newEvento, actividades: e.target.value })}
-                />
-              </Form.Group>
             </>
           )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Cancelar
-          </Button>
-          <Button
-            variant="primary"
-            onClick={modalType === "cita" ? handleAddCita : handleAddEvento}
-          >
-            Guardar
-          </Button>
-        </Modal.Footer>
-      </Modal>
+        </Card.Body>
+      </Card>
     </Container>
   );
 };
