@@ -31,7 +31,6 @@ const apiRequest = async <T>(
  * ======================== */
 
 /** Get all products (from n8n backend) */
-export const getInventario = async (fileId?: string): Promise<Producto[]> => {
-  const params = fileId ? `?file_id=${fileId}` : "";
-  return apiRequest<Producto[]>(`/drive/products${params}`);
+export const getInventario = async (): Promise<Producto[]> => {
+  return apiRequest<Producto[]>(`/drive/products`);
 };

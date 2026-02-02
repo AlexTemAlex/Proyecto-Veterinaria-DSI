@@ -16,7 +16,7 @@ interface SidebarProps {
   toggleMenu: () => void;  // función para abrir/cerrar sidebar
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ showMenu, toggleMenu }) => {
+const Sidebar: React.FC<SidebarProps> = ({ toggleMenu }) => {
   const location = useLocation();
 
   const generateLink = (item: any) => (

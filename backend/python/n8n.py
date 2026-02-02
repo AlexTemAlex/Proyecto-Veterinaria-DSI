@@ -190,16 +190,20 @@ async def get_download_link(file_id: str):
 # PRODUCTOS
 # ========================
 @router.get("/drive/products")
-async def get_productos(file_id: str | None = None):
+async def get_productos():
     try:
-        params = {}
-        if file_id:
-            params["file_id"] = file_id
         async with httpx.AsyncClient(timeout=10) as client:
-            r = await client.get(
-                f"{N8N_BASE_URL}/api/drive/products",
-                params=params,
-            )
+            r = await client.get(f"{N8N_BASE_URL}/api/drive/products")
+            r.raise_for_status()
+            return r.json()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/drive/total/products")
+async def get_productos():
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.get(f"{N8N_BASE_URL}/api/drive/total/products")
             r.raise_for_status()
             return r.json()
     except Exception as e:
@@ -283,7 +287,7 @@ async def get_citas_hoy():
 # ========================
 # CHATBOT
 # ========================
-@router.post("/chatbot")
+@router.post("/web/chatbot")
 async def post_chatbot(
     request: ChatbotRequest,
     id_session: Optional[str] = Cookie(None),

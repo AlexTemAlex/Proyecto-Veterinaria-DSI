@@ -156,15 +156,6 @@ export const getCita = (id: string) =>
 export const getCitasHoy = () =>
   apiRequest<Cita[]>(`/api/citas/hoy`);
 
-/** Chatbot */
-export const sendChatbot = (mensaje: string) =>
-  apiRequest<{ respuesta: string }>("/chatbot", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ mensaje }),
-  });
-
-
 /** Format file size */
 export const formatFileSize = (bytes: string | undefined): string => {
   if (!bytes) return "N/A";
