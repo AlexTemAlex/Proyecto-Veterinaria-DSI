@@ -1,8 +1,8 @@
 import { GoogleDriveFile, GoogleDriveFolder, Cita } from "types/index";
 
 // Backend API URL
+//const API_BASE_URL = "http://localhost:8000/api";
 const API_BASE_URL = "/api";
-
 /** Make API request */
 const apiRequest = async <T>(
   endpoint: string,
