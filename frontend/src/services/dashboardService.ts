@@ -10,13 +10,20 @@ export interface Producto {
 }
 
 export interface Cita {
-  dueno: string;
-  mascota: string;
-  fecha: string;
-  tipo: string;
-  raza: string;
-  estado: string;
+  cita_id: string;           // id de la cita
+  cedula: number;            // cédula del dueño
+  mascota: string;           // nombre de la mascota
+  dueno: string;             // nombre del dueño
+  fecha: string;             // fecha de la cita en formato "yyyy-mm-dd"
+  horaIngreso: string;       // hora de la cita en formato "HH:mm"
+  tipoCita: string;          // tipo de cita
+  estado: string;            // estado de la cita
+  telefono: number;          // teléfono del dueño
+  veterinario?: string;      // opcional
+  actividad?: string;        // opcional
+  fechaCompleta?: Date;      // opcional, para uso interno (filtros, orden)
 }
+
 
 export interface CitasMensuales {
   mes: string;
@@ -147,20 +154,25 @@ export const fetchDocumentosDetallado = async (): Promise<{
 };
 
 /* ================= CITAS ================= */
-export const fetchCitas = async (): Promise<Cita[]> => { 
+export const fetchCitas = async (): Promise<Cita[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/citas`);
+    const response = await fetch(`${API_BASE_URL}/drive/citas`);
     if (!response.ok) throw new Error("Error al obtener citas");
 
-    const raw = await response.json();
+    const data = await response.json();
+    if (!Array.isArray(data.citas)) return [];
 
-    if (Array.isArray(raw)) return raw;
-
-    if (Array.isArray(raw.citas)) return raw.citas;
-
-    if (Array.isArray(raw.data)) return raw.data;
-
-    return [];
+    return data.citas.map((c: any) => ({
+      cita_id: c.cita_id,
+      cedula: c.cedula,
+      mascota: c.Mascota,
+      dueno: c["Dueño"],
+      fecha: c["Fecha cita"]?.replace(/"/g, ""),
+      horaIngreso: c["Hora cita"]?.replace(/"/g, ""),
+      tipoCita: c["Tipo cita"],
+      telefono: c.Telefono ? `0${c.Telefono}` : "",
+      estado: c.Estado,
+    }));
   } catch (e) {
     console.error("Error fetchCitas:", e);
     return [];

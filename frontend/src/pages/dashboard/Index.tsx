@@ -410,32 +410,32 @@ const Dashboard = () => {
                     })}
                   </Form.Select>
                 </div>
+
                 <Table responsive className="text-nowrap">
                   <thead className="table-light">
                     <tr>
-                      <th>Nombre del Dueño</th>
-                      <th>Nombre de la Mascota</th>
-                      <th>Fecha de la cita</th>
-                      <th>Tipo</th>
-                      <th>Raza</th>
+                      <th>ID</th>
                       <th>Estado</th>
+                      <th>Cédula</th>
+                      <th>Dueño</th>
+                      <th>Teléfono</th>
+                      <th>N. de la Mascota</th>
+                      <th>Fecha</th>
+                      <th>Hora</th>
+                      <th>Tipo</th>
                     </tr>
                   </thead>
                   <tbody>
                     {citasFiltradas.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="text-center text-muted py-4">
+                        <td colSpan={9} className="text-center text-muted py-4">
                           No hay citas para {selectedMonth} {selectedYear}
                         </td>
                       </tr>
                     ) : (
                       citasFiltradas.map((cita, index) => (
                         <tr key={index}>
-                          <td>{cita.dueno}</td>
-                          <td>{cita.mascota}</td>
-                          <td>{cita.fecha}</td>
-                          <td>{cita.tipo}</td>
-                          <td>{cita.raza}</td>
+                          <td>{cita.cita_id}</td>
                           <td>
                             <Badge
                               pill
@@ -445,6 +445,23 @@ const Dashboard = () => {
                               {cita.estado}
                             </Badge>
                           </td>
+                          <td>{cita.cedula}</td>
+                          <td>{cita.dueno}</td>
+                          <td>{cita.telefono}</td>
+                          <td>{cita.mascota}</td>
+                          <td>
+                            {cita.fecha
+                              ? new Date(cita.fecha.replace(/"/g, ""))
+                                  .toLocaleDateString("es-EC", { day: "2-digit", month: "2-digit", year: "numeric" })
+                              : ""}
+                          </td>
+                          <td>
+                            {cita.horaIngreso
+                              ? new Date(cita.horaIngreso.replace(/"/g, ""))
+                                  .toLocaleTimeString("es-EC", { hour: "2-digit", minute: "2-digit", hour12: false })
+                              : ""}
+                          </td>
+                          <td>{cita.tipoCita}</td>
                         </tr>
                       ))
                     )}
@@ -454,6 +471,7 @@ const Dashboard = () => {
             </Card>
           </Col>
         </Row>
+
       </Container>
     </Fragment>
   );

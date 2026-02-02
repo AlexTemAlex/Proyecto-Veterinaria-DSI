@@ -13,35 +13,22 @@ import {
 } from "react-bootstrap";
 import { useNotifications } from "context/NotificationContext";
 
-
 //const API_BASE_URL = "http://localhost:8000/api";
 const API_BASE_URL = "/api";
 // Interfaces
 export interface CitaData {
-  id: string;
-  paciente: string;
-  dueno: string;
-  fecha: string;
-  horaIngreso: string;
-  horaSalida: string;
-  tipoCita: string;
-  estado: string;
-  veterinario?: string;
-  actividad?: string;
+  id: string;                // cita_id
+  cedula: number;            // cedula del dueño
+  paciente: string;          // mascota
+  dueno: string;             // dueño
+  fecha: string;             // fecha_cita
+  horaIngreso: string;       // hora_cita
+  tipoCita: string;          // tipo_cita
+  estado: string;            // estado
+  telefono: number;          // teléfono del dueño
+  veterinario?: string;      // opcional
+  actividad?: string;        // opcional
 }
-
-export interface EventoData {
-  id: string;
-  nombre: string;
-  encargado: string;
-  fecha: string;
-  horaInicio: string;
-  horaFin: string;
-  actividades: string;
-  estado: string;
-}
-
-type VistaCalendario = "Lista" | "Mes" | "Semana" | "Dia";
 
 const MESES = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -67,10 +54,14 @@ const getEstadoBadge = (estado: string) => {
   }
 };
 
-const formatFechaSidebar = (fecha: string): string => {
-  const dias = ["Domingo", "Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado"];
-  const d = new Date(fecha);
-  return `${dias[d.getDay()]} ${d.getDate().toString().padStart(2, "0")} de ${MESES[d.getMonth()]} a las ${d.toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" })}`;
+const formatFechaSidebar = (fecha: Date): string => {
+  const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+  return `${dias[fecha.getDay()]} ${fecha.getDate().toString().padStart(2, "0")} de ${MESES[fecha.getMonth()]} a las ${fecha.toLocaleTimeString("es-ES", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "America/Guayaquil",
+  })}`;
 };
 
 const Citas = () => {
@@ -78,47 +69,96 @@ const Citas = () => {
 
   // Data state
   const [citas, setCitas] = useState<CitaData[]>([]);
-  const [eventos, setEventos] = useState<EventoData[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Calendar state
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [vistaActiva, setVistaActiva] = useState<VistaCalendario>("Lista");
 
   // Citas filters
   const [filtroTipoCita, setFiltroTipoCita] = useState("");
   const [filtroEstadoCita, setFiltroEstadoCita] = useState("");
   const [paginaCitas, setPaginaCitas] = useState(1);
 
-  // Eventos filters
-  const [filtroFechaEvento, setFiltroFechaEvento] = useState("");
-  const [filtroEstadoEvento, setFiltroEstadoEvento] = useState("");
-  const [paginaEventos, setPaginaEventos] = useState(1);
-
   // Modal state
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState<"cita" | "evento">("cita");
   const [newCita, setNewCita] = useState<Partial<CitaData>>({});
-  const [newEvento, setNewEvento] = useState<Partial<EventoData>>({});
+
+const [mostrarMas, setMostrarMas] = useState(false);
 
   // Fetch data
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [citasRes, eventosRes] = await Promise.allSettled([
-          fetch(`${API_BASE_URL}/citas`).then((r) => (r.ok ? r.json() : [])),
-          fetch(`${API_BASE_URL}/eventos`).then((r) => (r.ok ? r.json() : [])),
-        ]);
-        setCitas(citasRes.status === "fulfilled" ? citasRes.value : []);
-        setEventos(eventosRes.status === "fulfilled" ? eventosRes.value : []);
-      } catch {
+        const res = await fetch(`${API_BASE_URL}/drive/citas`);
+        if (!res.ok) throw new Error("Error al cargar citas");
+        const data = await res.json();
+
+        // Transformar los datos de la API a tu interfaz
+        const citasTransformadas: CitaData[] = data.citas.map((c: any) => {
+          const fechaStr = c["Fecha cita"]?.replace(/"/g, "");
+          const horaStr = c["Hora cita"]?.replace(/"/g, "");
+
+          let fechaFormateada = "";
+          let horaIngreso = "";
+
+          if (fechaStr) {
+            // Crear objeto Date usando UTC
+            const fechaUTC = new Date(fechaStr);
+
+            // Extraer hora y minuto desde "Hora cita"
+            let hora = 0;
+            let minutos = 0;
+            if (horaStr) {
+              const horaUTC = new Date(horaStr);
+              hora = horaUTC.getUTCHours();
+              minutos = horaUTC.getUTCMinutes();
+            }
+
+            // Ajustar fecha con hora y minuto
+            const fechaFinal = new Date(fechaUTC);
+            fechaFinal.setUTCHours(hora, minutos, 0, 0); // usar setUTCHours para no afectar día
+
+            // Formatear fecha y hora en horario de Ecuador
+            fechaFormateada = fechaFinal.toLocaleDateString("es-ES", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              timeZone: "America/Guayaquil",
+            });
+
+            horaIngreso = fechaFinal.toLocaleTimeString("es-ES", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+              timeZone: "America/Guayaquil",
+            });
+          }
+
+          return {
+            id: c.cita_id,
+            cedula: c.cedula,
+            paciente: c.Mascota,
+            dueno: c["Dueño"],
+            fecha: fechaFormateada,
+            horaIngreso,
+            tipoCita: c["Tipo cita"],
+            estado: c.Estado,
+            telefono: c.Telefono,
+          };
+        });
+
+
+        setCitas(citasTransformadas);
+      } catch (err) {
+        console.error(err);
         setCitas([]);
-        setEventos([]);
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
   }, []);
 
@@ -129,7 +169,6 @@ const Citas = () => {
   const navigateMonth = (dir: number) => {
     setCurrentDate(new Date(yearActual, mesActual + dir, 1));
     setPaginaCitas(1);
-    setPaginaEventos(1);
   };
 
   // Filter citas by current month
@@ -150,10 +189,6 @@ const Citas = () => {
     return [...new Set(citasDelMes.map((c) => c.estado))];
   }, [citasDelMes]);
 
-  const estadosEvento = useMemo(() => {
-    return [...new Set(eventos.map((e) => e.estado))];
-  }, [eventos]);
-
   // Filtered citas
   const citasFiltradas = useMemo(() => {
     return citasDelMes.filter((c) => {
@@ -163,19 +198,21 @@ const Citas = () => {
     });
   }, [citasDelMes, filtroTipoCita, filtroEstadoCita]);
 
+  const [filtroFechaCita, setFiltroFechaCita] = useState("");
+
   // Filtered eventos
-  const eventosFiltrados = useMemo(() => {
-    return eventos.filter((e) => {
-      const f = new Date(e.fecha);
-      if (f.getMonth() !== mesActual || f.getFullYear() !== yearActual) return false;
-      if (filtroFechaEvento) {
-        const filterDate = new Date(filtroFechaEvento);
-        if (f.toDateString() !== filterDate.toDateString()) return false;
-      }
-      if (filtroEstadoEvento && e.estado !== filtroEstadoEvento) return false;
-      return true;
-    });
-  }, [eventos, mesActual, yearActual, filtroFechaEvento, filtroEstadoEvento]);
+  // const eventosFiltrados = useMemo(() => {
+  //   return eventos.filter((e) => {
+  //     const f = new Date(e.fecha);
+  //     if (f.getMonth() !== mesActual || f.getFullYear() !== yearActual) return false;
+  //     if (filtroFechaEvento) {
+  //       const filterDate = new Date(filtroFechaEvento);
+  //       if (f.toDateString() !== filterDate.toDateString()) return false;
+  //     }
+  //     if (filtroEstadoEvento && e.estado !== filtroEstadoEvento) return false;
+  //     return true;
+  //   });
+  // }, [eventos, mesActual, yearActual, filtroFechaEvento, filtroEstadoEvento]);
 
   // Pagination
   const totalPagesCitas = Math.max(1, Math.ceil(citasFiltradas.length / ITEMS_PER_PAGE));
@@ -184,44 +221,34 @@ const Citas = () => {
     paginaCitas * ITEMS_PER_PAGE
   );
 
-  const totalPagesEventos = Math.max(1, Math.ceil(eventosFiltrados.length / ITEMS_PER_PAGE));
-  const eventosPaginados = eventosFiltrados.slice(
-    (paginaEventos - 1) * ITEMS_PER_PAGE,
-    paginaEventos * ITEMS_PER_PAGE
-  );
-
   // Próximas actividades (sidebar)
   const proximasActividades = useMemo(() => {
-    const now = new Date();
-    const allItems = [
-      ...citas.map((c) => ({
-        tipo: "CITA" as const,
-        titulo: `${c.tipoCita} ${c.paciente}`,
-        fecha: c.fecha,
-        horaIngreso: c.horaIngreso,
-        paciente: c.paciente,
-        dueno: c.dueno,
-        veterinario: c.veterinario || "",
-        actividad: c.actividad || "",
-        color: "primary",
-      })),
-      ...eventos.map((e) => ({
-        tipo: "EVENTO" as const,
-        titulo: e.nombre,
-        fecha: e.fecha,
-        horaIngreso: e.horaInicio,
-        paciente: "",
-        dueno: "",
-        veterinario: e.encargado,
-        actividad: e.actividades,
-        color: "warning",
-      })),
-    ];
-    return allItems
-      .filter((item) => new Date(item.fecha) >= new Date(now.toDateString()))
-      .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())
-      .slice(0, 5);
-  }, [citas, eventos]);
+    const items = citas
+      .map((c) => {
+        const fechaStr = c.fecha; // "dd/mm/yyyy"
+        const [day, month, year] = fechaStr.split("/").map(Number);
+        const [hora, minuto] = c.horaIngreso.split(":").map(Number);
+        const fechaFinal = new Date(Date.UTC(year, month - 1, day, hora, minuto));
+
+        return {
+          tipo: c.tipoCita || c.actividad || "Actividad",
+          titulo: `${c.tipoCita || c.actividad} - ${c.paciente}`,
+          fecha: fechaFinal,
+          horaIngreso: c.horaIngreso,
+          paciente: c.paciente,
+          dueno: c.dueno,
+          veterinario: c.veterinario || "",
+          actividad: c.actividad || "",
+          color: c.tipoCita ? "primary" : "warning",
+        };
+      })
+      .filter((item) => item.fecha >= new Date())
+      .sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
+
+    // Si no queremos mostrar todas de golpe, limitar
+    return mostrarMas ? items : items.slice(0, 5);
+  }, [citas, mostrarMas]);
+
 
   // Reset filters
   const resetCitaFilters = () => {
@@ -230,51 +257,29 @@ const Citas = () => {
     setPaginaCitas(1);
   };
 
-  const resetEventoFilters = () => {
-    setFiltroFechaEvento("");
-    setFiltroEstadoEvento("");
-    setPaginaEventos(1);
-  };
-
   // Add new cita
   const handleAddCita = () => {
-    if (!newCita.paciente || !newCita.fecha) return;
-    const cita: CitaData = {
-      id: `C${String(citas.length + 1).padStart(5, "0")}`,
-      paciente: newCita.paciente || "",
-      dueno: newCita.dueno || "",
-      fecha: newCita.fecha || "",
-      horaIngreso: newCita.horaIngreso || "",
-      horaSalida: newCita.horaSalida || "------",
-      tipoCita: newCita.tipoCita || "",
-      estado: "En Espera",
-      veterinario: newCita.veterinario || "",
-      actividad: newCita.actividad || "",
-    };
-    setCitas((prev) => [...prev, cita]);
-    addNotification("citas", "agregar", `cita para "${cita.paciente}"`);
-    setShowModal(false);
-    setNewCita({});
+  if (!newCita.paciente || !newCita.fecha) return;
+
+  const cita: CitaData = {
+    id: String(citas.length + 1), // o usa otro formato
+    paciente: newCita.paciente || "",
+    dueno: newCita.dueno || "",
+    fecha: newCita.fecha || "",
+    horaIngreso: newCita.horaIngreso || "",
+    tipoCita: newCita.tipoCita || "",
+    estado: "En Espera",
+    veterinario: newCita.veterinario || "",
+    actividad: newCita.actividad || "",
+    cedula: newCita.cedula || 0,
+    telefono: newCita.telefono || 0,
   };
 
-  // Add new evento
-  const handleAddEvento = () => {
-    if (!newEvento.nombre || !newEvento.fecha) return;
-    const evento: EventoData = {
-      id: `E${String(eventos.length + 1).padStart(5, "0")}`,
-      nombre: newEvento.nombre || "",
-      encargado: newEvento.encargado || "",
-      fecha: newEvento.fecha || "",
-      horaInicio: newEvento.horaInicio || "",
-      horaFin: newEvento.horaFin || "",
-      actividades: newEvento.actividades || "",
-      estado: "En Espera",
-    };
-    setEventos((prev) => [...prev, evento]);
-    addNotification("citas", "agregar", `evento "${evento.nombre}"`);
-    setShowModal(false);
-    setNewEvento({});
-  };
+  setCitas((prev) => [...prev, cita]);
+  addNotification("citas", "agregar", `Cita para "${cita.paciente}"`);
+  setShowModal(false);
+  setNewCita({});
+};
 
   if (loading) {
     return (
@@ -310,16 +315,12 @@ const Citas = () => {
               <Card
                 key={i}
                 className="mb-3 border-0 shadow-sm"
-                style={{
-                  borderLeft: `4px solid ${
-                    act.tipo === "CITA" ? "#0d6efd" : "#ffc107"
-                  }`,
-                }}
+                style={{ borderLeft: `4px solid ${act.color === "primary" ? "#0d6efd" : "#ffc107"}` }}
               >
                 <Card.Body className="p-3">
                   <div className="d-flex align-items-center mb-1">
                     <Badge
-                      bg={act.tipo === "CITA" ? "primary" : "warning"}
+                      bg={act.color}
                       className="me-2"
                       style={{ fontSize: "0.7rem" }}
                     >
@@ -330,34 +331,23 @@ const Citas = () => {
                   <p className="text-muted mb-1" style={{ fontSize: "0.75rem" }}>
                     {formatFechaSidebar(act.fecha)}
                   </p>
-                  {act.paciente && (
-                    <p className="mb-0 text-muted" style={{ fontSize: "0.75rem" }}>
-                      &lt;Paciente&gt; {act.paciente}
-                    </p>
-                  )}
-                  {act.dueno && (
-                    <p className="mb-0 text-muted" style={{ fontSize: "0.75rem" }}>
-                      &lt;Dueño&gt; {act.dueno}
-                    </p>
-                  )}
-                  {act.veterinario && (
-                    <p className="mb-0 text-muted" style={{ fontSize: "0.75rem" }}>
-                      &lt;Veterinario o Empleado&gt; {act.veterinario}
-                    </p>
-                  )}
-                  {act.actividad && (
-                    <p className="mb-0 text-muted" style={{ fontSize: "0.75rem" }}>
-                      &lt;Actividad&gt; {act.actividad}
-                    </p>
-                  )}
+                  {act.paciente && <p className="mb-0 text-muted" style={{ fontSize: "0.75rem" }}>&lt;Paciente&gt; {act.paciente}</p>}
+                  {act.dueno && <p className="mb-0 text-muted" style={{ fontSize: "0.75rem" }}>&lt;Dueño&gt; {act.dueno}</p>}
+                  {act.veterinario && <p className="mb-0 text-muted" style={{ fontSize: "0.75rem" }}>&lt;Veterinario o Empleado&gt; {act.veterinario}</p>}
+                  {act.actividad && <p className="mb-0 text-muted" style={{ fontSize: "0.75rem" }}>&lt;Actividad&gt; {act.actividad}</p>}
                 </Card.Body>
               </Card>
             ))
           )}
 
-          {proximasActividades.length > 0 && (
-            <Button variant="primary" size="sm" className="w-100">
-              Ver Más
+          {proximasActividades.length > 0 && citas.length > 5 && (
+            <Button
+              variant="primary"
+              size="sm"
+              className="w-100"
+              onClick={() => setMostrarMas((prev) => !prev)}
+            >
+              {mostrarMas ? "Ver Menos" : "Ver Más"}
             </Button>
           )}
         </Col>
@@ -368,7 +358,13 @@ const Citas = () => {
           <Card className="border-0 shadow-sm mb-4">
             <Card.Body className="p-3">
               <div className="d-flex justify-content-between align-items-center">
-                <Button variant="outline-secondary" size="sm">
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
+                  onClick={() => {
+                    setCurrentDate(new Date()); // vuelve al mes actual
+                  }}
+                >
                   Hoy
                 </Button>
                 <div className="d-flex align-items-center gap-3">
@@ -389,20 +385,6 @@ const Citas = () => {
                   >
                     &gt;
                   </Button>
-                </div>
-                <div className="btn-group">
-                  {(["Lista", "Mes", "Semana", "Dia"] as VistaCalendario[]).map(
-                    (vista) => (
-                      <Button
-                        key={vista}
-                        variant={vistaActiva === vista ? "primary" : "outline-primary"}
-                        size="sm"
-                        onClick={() => setVistaActiva(vista)}
-                      >
-                        {vista}
-                      </Button>
-                    )
-                  )}
                 </div>
               </div>
             </Card.Body>
@@ -427,6 +409,22 @@ const Citas = () => {
                     year: "numeric",
                   })}
                 </span>
+                <Form.Control
+                  type="date"
+                  size="sm"
+                  style={{ width: "auto" }}
+                  value={filtroFechaCita}
+                  onChange={(e) => {
+                    const fechaSeleccionada = e.target.value; // formato "yyyy-mm-dd"
+                    setFiltroFechaCita(fechaSeleccionada);
+                    setPaginaCitas(1);
+
+                    if (fechaSeleccionada) {
+                      const [year, month] = fechaSeleccionada.split("-").map(Number);
+                      setCurrentDate(new Date(year, month - 1, 1)); // cambia el mes/año del calendario
+                    }
+                  }}
+                />
                 <Form.Select
                   size="sm"
                   style={{ width: "auto" }}
@@ -474,7 +472,6 @@ const Citas = () => {
                     <th>DUEÑO</th>
                     <th>FECHA</th>
                     <th>HORA INGRESO</th>
-                    <th>HORA SALIDA</th>
                     <th>TIPO DE CITA</th>
                     <th>ESTADO</th>
                   </tr>
@@ -500,7 +497,6 @@ const Citas = () => {
                           })}
                         </td>
                         <td>{cita.horaIngreso}</td>
-                        <td>{cita.horaSalida}</td>
                         <td>{cita.tipoCita}</td>
                         <td>
                           <Badge pill bg={getEstadoBadge(cita.estado)} className="px-3 py-2">
@@ -528,129 +524,6 @@ const Citas = () => {
                     size="sm"
                     disabled={paginaCitas >= totalPagesCitas}
                     onClick={() => setPaginaCitas((p) => p + 1)}
-                  >
-                    Siguiente &gt;
-                  </Button>
-                </div>
-              )}
-            </Card.Body>
-          </Card>
-
-          {/* Eventos Table */}
-          <Card className="border-0 shadow-sm">
-            <Card.Body className="p-4">
-              <h5 className="fw-bold mb-3">Eventos</h5>
-              <div className="d-flex align-items-center gap-3 mb-3 flex-wrap">
-                <i className="fe fe-filter text-muted"></i>
-                <Form.Control
-                  type="date"
-                  size="sm"
-                  style={{ width: "auto" }}
-                  value={filtroFechaEvento}
-                  onChange={(e) => {
-                    setFiltroFechaEvento(e.target.value);
-                    setPaginaEventos(1);
-                  }}
-                />
-                <Form.Select
-                  size="sm"
-                  style={{ width: "auto" }}
-                  value={filtroEstadoEvento}
-                  onChange={(e) => {
-                    setFiltroEstadoEvento(e.target.value);
-                    setPaginaEventos(1);
-                  }}
-                >
-                  <option value="">Filtrar Estado</option>
-                  {estadosEvento.map((e) => (
-                    <option key={e} value={e}>{e}</option>
-                  ))}
-                </Form.Select>
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="text-danger"
-                  onClick={resetEventoFilters}
-                >
-                  <i className="fe fe-refresh-cw me-1"></i>
-                  Reiniciar Filtro
-                </Button>
-                <div className="ms-auto">
-                  <Button
-                    variant="warning"
-                    size="sm"
-                    onClick={() => {
-                      setModalType("evento");
-                      setShowModal(true);
-                    }}
-                  >
-                    + Nuevo Evento
-                  </Button>
-                </div>
-              </div>
-
-              <Table responsive className="text-nowrap">
-                <thead className="table-light">
-                  <tr>
-                    <th>ID</th>
-                    <th>NOMBRE</th>
-                    <th>ENCARGADO</th>
-                    <th>FECHA</th>
-                    <th>HORA INICIO</th>
-                    <th>HORA FIN</th>
-                    <th>ACTIVIDADES</th>
-                    <th>ESTADO</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {eventosPaginados.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="text-center text-muted py-4">
-                        No hay eventos para este mes
-                      </td>
-                    </tr>
-                  ) : (
-                    eventosPaginados.map((evento) => (
-                      <tr key={evento.id}>
-                        <td>{evento.id}</td>
-                        <td>{evento.nombre}</td>
-                        <td>{evento.encargado}</td>
-                        <td>
-                          {new Date(evento.fecha).toLocaleDateString("es", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          })}
-                        </td>
-                        <td>{evento.horaInicio}</td>
-                        <td>{evento.horaFin}</td>
-                        <td>{evento.actividades}</td>
-                        <td>
-                          <Badge pill bg={getEstadoBadge(evento.estado)} className="px-3 py-2">
-                            {evento.estado}
-                          </Badge>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </Table>
-
-              {totalPagesEventos > 1 && (
-                <div className="d-flex justify-content-between align-items-center">
-                  <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    disabled={paginaEventos <= 1}
-                    onClick={() => setPaginaEventos((p) => p - 1)}
-                  >
-                    &lt; Anterior
-                  </Button>
-                  <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    disabled={paginaEventos >= totalPagesEventos}
-                    onClick={() => setPaginaEventos((p) => p + 1)}
                   >
                     Siguiente &gt;
                   </Button>
@@ -730,65 +603,7 @@ const Citas = () => {
                 />
               </Form.Group>
             </>
-          ) : (
-            <>
-              <Form.Group className="mb-3">
-                <Form.Label>Nombre del Evento</Form.Label>
-                <Form.Control
-                  value={newEvento.nombre || ""}
-                  onChange={(e) => setNewEvento({ ...newEvento, nombre: e.target.value })}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Encargado</Form.Label>
-                <Form.Control
-                  value={newEvento.encargado || ""}
-                  onChange={(e) => setNewEvento({ ...newEvento, encargado: e.target.value })}
-                />
-              </Form.Group>
-              <Row>
-                <Col>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Fecha</Form.Label>
-                    <Form.Control
-                      type="date"
-                      value={newEvento.fecha || ""}
-                      onChange={(e) => setNewEvento({ ...newEvento, fecha: e.target.value })}
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
-              <Row>
-                <Col>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Hora Inicio</Form.Label>
-                    <Form.Control
-                      type="time"
-                      value={newEvento.horaInicio || ""}
-                      onChange={(e) => setNewEvento({ ...newEvento, horaInicio: e.target.value })}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Hora Fin</Form.Label>
-                    <Form.Control
-                      type="time"
-                      value={newEvento.horaFin || ""}
-                      onChange={(e) => setNewEvento({ ...newEvento, horaFin: e.target.value })}
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
-              <Form.Group className="mb-3">
-                <Form.Label>Actividades</Form.Label>
-                <Form.Control
-                  value={newEvento.actividades || ""}
-                  onChange={(e) => setNewEvento({ ...newEvento, actividades: e.target.value })}
-                />
-              </Form.Group>
-            </>
-          )}
+          ) : (<></>)}
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>
@@ -796,7 +611,7 @@ const Citas = () => {
           </Button>
           <Button
             variant="primary"
-            onClick={modalType === "cita" ? handleAddCita : handleAddEvento}
+            onClick={modalType === "cita" ? handleAddCita : handleAddCita}
           >
             Guardar
           </Button>
