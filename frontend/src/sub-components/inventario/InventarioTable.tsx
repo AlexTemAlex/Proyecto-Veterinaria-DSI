@@ -10,6 +10,7 @@ export interface Producto {
   stock: number;
 }
 
+//const API_BASE_URL = "http://localhost:8000/api";
 const API_BASE_URL = "/api";
 
 const ITEMS_PER_PAGE = 10;

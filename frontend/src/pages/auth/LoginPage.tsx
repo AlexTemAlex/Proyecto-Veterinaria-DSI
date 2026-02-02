@@ -7,6 +7,9 @@ import '../../components/login_petsi/LoginForm.css';
 
 import { useMounted } from "../../hooks/useMounted";
 
+//const API_BASE_URL = "http://localhost:8000/api";
+const API_BASE_URL = "/api";
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const hasMounted = useMounted();
@@ -33,7 +36,7 @@ export default function LoginPage() {
       formData.append("username", form.username);
       formData.append("password", form.password);
 
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         body: formData,
       });

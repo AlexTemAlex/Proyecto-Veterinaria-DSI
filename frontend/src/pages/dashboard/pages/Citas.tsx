@@ -13,6 +13,9 @@ import {
 } from "react-bootstrap";
 import { useNotifications } from "context/NotificationContext";
 
+
+//const API_BASE_URL = "http://localhost:8000/api";
+const API_BASE_URL = "/api";
 // Interfaces
 export interface CitaData {
   id: string;
@@ -46,8 +49,6 @@ const MESES = [
 ];
 
 const ITEMS_PER_PAGE = 5;
-
-const API_BASE_URL = "/api";
 
 const getEstadoBadge = (estado: string) => {
   switch (estado.toLowerCase()) {
